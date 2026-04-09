@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Razorpay Checkout Redesign — Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rz-navy: #061A40;
+  --rz-blue: #3395FF;
+  --rz-deep: #02102A;
+  --paper: #F7F5F0;
+  --paper-warm: #EEECE5;
+  --ink: #0D0D12;
+  --ink-50: rgba(13,13,18,0.5);
+  --ink-20: rgba(13,13,18,0.12);
+  --green: #0A8754;
+  --green-bg: #DCF5EB;
+  --red: #C0392B;
+  --red-bg: #FDECEA;
+  --amber: #B7660A;
+  --amber-bg: #FEF3DC;
+  --stroke: rgba(13,13,18,0.09);
+  --white: #ffffff;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body{
+  font-family:'Instrument Sans',sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.6;
+  overflow-x:hidden;
+}
+
+/* ── PROGRESS BAR ── */
+#progress-bar{
+  position:fixed;top:0;left:0;height:2px;
+  background:var(--rz-blue);
+  z-index:9999;width:0%;
+  transition:width 0.1s linear;
+}
+
+/* ── NAV ── */
+.nav{
+  position:fixed;top:0;left:0;right:0;
+  z-index:1000;
+  display:flex;align-items:center;
+  padding:0 48px;
+  height:60px;
+  background:rgba(6,26,64,0.92);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.nav-brand{
+  font-family:'Playfair Display',serif;
+  font-size:15px;font-weight:700;
+  color:rgba(255,255,255,0.9);
+  margin-right:auto;
+  letter-spacing:0.01em;
+}
+.nav-brand em{color:var(--rz-blue);font-style:italic;}
+.nav-links{display:flex;gap:2px;}
+.nav-link{
+  padding:6px 14px;border-radius:6px;
+  font-size:12px;font-weight:500;letter-spacing:0.02em;
+  color:rgba(255,255,255,0.42);
+  text-decoration:none;
+  transition:color .2s,background .2s;
+}
+.nav-link:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.05)}
+.nav-link.active{color:#fff;background:rgba(255,255,255,0.1)}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  background:var(--rz-deep);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  align-items:center;
+  padding:100px 80px 80px;
+  position:relative;
+  overflow:hidden;
+  gap:60px;
+}
+
+.hero-bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(51,149,255,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(51,149,255,0.04) 1px,transparent 1px);
+  background-size:80px 80px;
+}
+
+.hero-bg-orb{
+  position:absolute;
+  width:600px;height:600px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(51,149,255,0.12) 0%,transparent 70%);
+  right:-100px;top:-100px;
+  pointer-events:none;
+}
+
+.hero-bg-orb2{
+  position:absolute;
+  width:400px;height:400px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(51,149,255,0.06) 0%,transparent 70%);
+  left:-50px;bottom:-50px;
+  pointer-events:none;
+}
+
+.hero-left{position:relative;z-index:2;}
+
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  color:var(--rz-blue);letter-spacing:0.12em;text-transform:uppercase;
+  margin-bottom:28px;
+}
+.hero-kicker::before{
+  content:'';width:24px;height:1px;background:var(--rz-blue);
+}
+
+.hero-h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(52px,6vw,88px);
+  font-weight:900;line-height:0.95;
+  color:#fff;letter-spacing:-0.02em;
+  margin-bottom:24px;
+}
+.hero-h1 em{
+  font-style:italic;
+  color:var(--rz-blue);
+}
+
+.hero-desc{
+  font-size:17px;color:rgba(255,255,255,0.48);
+  line-height:1.75;max-width:440px;margin-bottom:44px;
+}
+
+.hero-attrs{
+  display:flex;flex-wrap:wrap;gap:24px;
+}
+.attr{
+  display:flex;flex-direction:column;gap:3px;
+}
+.attr-label{
+  font-family:var(--mono);font-size:10px;
+  color:rgba(255,255,255,0.25);letter-spacing:0.12em;text-transform:uppercase;
+}
+.attr-val{
+  font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);
+}
+
+/* Hero right — stat cards */
+.hero-right{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;gap:16px;
+}
+
+.hero-stat-card{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px;
+  padding:24px 28px;
+  display:flex;align-items:center;gap:20px;
+  transition:background .3s;
+}
+.hero-stat-card:hover{background:rgba(255,255,255,0.07)}
+.hsc-icon{
+  font-size:28px;flex-shrink:0;
+  width:52px;height:52px;border-radius:12px;
+  background:rgba(255,255,255,0.05);
+  display:flex;align-items:center;justify-content:center;
+}
+.hsc-num{
+  font-family:'Playfair Display',serif;
+  font-size:36px;font-weight:900;line-height:1;
+  margin-bottom:3px;
+}
+.hsc-num.red{color:#FF7171;}
+.hsc-num.white{color:#fff;}
+.hsc-num.green{color:#4EDE96;}
+.hsc-label{font-size:13px;color:rgba(255,255,255,0.4);}
+
+.hero-scroll{
+  position:absolute;bottom:36px;left:80px;
+  font-family:var(--mono);font-size:10px;
+  color:rgba(255,255,255,0.2);letter-spacing:0.12em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;
+  animation:float 2.4s ease-in-out infinite;
+}
+.hero-scroll svg{opacity:0.5;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* ── CHAPTER MARKER ── */
+.chapter{
+  padding:80px 80px 0;
+}
+.chapter-inner{
+  border-top:1px solid var(--ink-20);
+  padding-top:28px;
+  display:flex;align-items:center;gap:16px;
+}
+.chapter-num{
+  font-family:var(--mono);font-size:11px;
+  color:var(--ink-50);letter-spacing:0.1em;
+}
+.chapter-title{
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  color:var(--ink-50);letter-spacing:0.06em;text-transform:uppercase;
+}
+
+/* ── SECTION BASE ── */
+section{padding:60px 80px 100px;}
+
+.section-pre{
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  color:var(--rz-blue);letter-spacing:0.15em;text-transform:uppercase;
+  margin-bottom:16px;display:flex;align-items:center;gap:10px;
+}
+.section-pre::before{content:'';width:20px;height:1px;background:var(--rz-blue);}
+
+.section-h{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(36px,4.5vw,60px);
+  font-weight:900;line-height:1.02;
+  letter-spacing:-0.02em;
+  margin-bottom:18px;
+}
+.section-body{
+  font-size:16px;color:var(--ink-50);line-height:1.8;
+  max-width:600px;
+}
+
+/* ── DARK SECTION ── */
+.dark-section{background:var(--ink);color:#fff;}
+.dark-section .section-body{color:rgba(255,255,255,0.45)}
+
+/* ── PROBLEM SECTION ── */
+.problem-section{background:var(--ink);}
+.problem-section .section-pre{color:#FF7171;}
+.problem-section .section-pre::before{background:#FF7171;}
+.problem-section .section-h{color:#fff;}
+
+.problems-layout{
+  margin-top:64px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+  border-radius:20px;overflow:hidden;
+}
+
+.problem-tile{
+  background:#0D0D18;
+  padding:40px 36px;
+  position:relative;
+  transition:background .3s;
+  cursor:default;
+}
+.problem-tile:hover{background:#111120}
+.pt-index{
+  font-family:'Playfair Display',serif;
+  font-size:80px;font-weight:900;
+  color:rgba(255,255,255,0.04);
+  line-height:1;margin-bottom:20px;
+  letter-spacing:-0.04em;
+}
+.pt-icon{font-size:26px;margin-bottom:18px;display:block;}
+.pt-title{
+  font-family:'Playfair Display',serif;
+  font-size:22px;font-weight:700;
+  color:#fff;margin-bottom:10px;line-height:1.2;
+}
+.pt-body{font-size:14px;color:rgba(255,255,255,0.38);line-height:1.75;}
+.pt-metric{
+  margin-top:24px;
+  padding:14px 16px;
+  background:rgba(255,113,113,0.08);
+  border-left:2px solid #FF7171;
+  border-radius:0 6px 6px 0;
+}
+.pt-metric-num{
+  font-family:'Playfair Display',serif;
+  font-size:22px;font-weight:900;color:#FF7171;
+  display:block;margin-bottom:2px;
+}
+.pt-metric-label{font-size:11px;color:rgba(255,255,255,0.3);}
+
+/* ── FUNNEL ── */
+.funnel-section{background:var(--paper-warm);}
+
+.funnel-container{
+  margin-top:64px;
+  display:grid;grid-template-columns:1fr 340px;gap:80px;align-items:start;
+}
+
+.funnel-bars{display:flex;flex-direction:column;gap:0;}
+
+.funnel-row{
+  display:flex;align-items:center;gap:20px;
+  padding:18px 0;
+  border-bottom:1px solid var(--ink-20);
+}
+.funnel-row:last-child{border:none;}
+
+.funnel-bar-area{flex:1;}
+.funnel-step-label{
+  font-size:13px;font-weight:500;color:var(--ink);
+  margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;
+}
+.funnel-drop-badge{
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  padding:2px 8px;border-radius:4px;
+}
+.funnel-drop-badge.ok{background:#E8F5E9;color:#2E7D32;}
+.funnel-drop-badge.warn{background:var(--amber-bg);color:var(--amber);}
+.funnel-drop-badge.bad{background:var(--red-bg);color:var(--red);}
+
+.funnel-track{
+  height:8px;background:var(--ink-20);border-radius:99px;overflow:hidden;
+}
+.funnel-fill{
+  height:100%;border-radius:99px;
+  background:var(--rz-navy);
+  transition:width 1.2s cubic-bezier(.16,1,.3,1);
+}
+.funnel-fill.warn{background:var(--amber);}
+.funnel-fill.bad{background:var(--red);}
+
+.funnel-pct-val{
+  font-family:'Playfair Display',serif;
+  font-size:24px;font-weight:900;
+  width:56px;text-align:right;flex-shrink:0;
+}
+
+.funnel-insight{
+  background:var(--ink);
+  border-radius:16px;
+  padding:28px;
+  color:#fff;
+  position:sticky;top:80px;
+}
+.fi-label{
+  font-family:var(--mono);font-size:10px;
+  color:rgba(255,255,255,0.3);letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:20px;
+}
+.fi-stat{
+  margin-bottom:20px;padding-bottom:20px;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.fi-stat:last-child{border:none;margin:0;padding:0;}
+.fi-num{
+  font-family:'Playfair Display',serif;
+  font-size:40px;font-weight:900;line-height:1;
+  margin-bottom:4px;
+}
+.fi-num.red{color:#FF7171;}
+.fi-num.amber{color:#F59F00;}
+.fi-desc{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.6;}
+
+/* ── RESEARCH ── */
+.research-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+  margin-top:64px;
+}
+
+.quote-card{
+  background:#fff;
+  border:1px solid var(--stroke);
+  border-radius:16px;padding:28px;
+  position:relative;
+  transition:transform .25s,box-shadow .25s;
+}
+.quote-card:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.07)}
+.qc-mark{
+  font-family:'Playfair Display',serif;
+  font-size:64px;line-height:0.8;font-weight:900;
+  color:rgba(51,149,255,0.12);
+  margin-bottom:14px;
+}
+.qc-text{
+  font-size:15px;font-style:italic;color:var(--ink);
+  line-height:1.7;margin-bottom:16px;
+}
+.qc-person{font-size:12px;color:var(--ink-50);}
+.qc-person strong{color:var(--ink);font-style:normal;}
+.qc-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:99px;
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  margin-top:14px;
+}
+.qc-tag.blue{background:rgba(51,149,255,0.1);color:var(--rz-blue);}
+.qc-tag.red{background:var(--red-bg);color:var(--red);}
+.qc-tag.green{background:var(--green-bg);color:var(--green);}
+
+/* ── FLOW DEMO ── */
+.flow-section{background:var(--rz-deep);}
+.flow-section .section-pre{color:var(--rz-blue);}
+.flow-section .section-pre::before{background:var(--rz-blue);}
+.flow-section .section-h{color:#fff;}
+
+.flow-tabs{
+  display:flex;gap:4px;margin-top:48px;
+  background:rgba(255,255,255,0.05);
+  border-radius:12px;padding:4px;
+  width:fit-content;
+}
+.flow-tab{
+  padding:9px 18px;border-radius:8px;
+  font-size:12px;font-weight:500;letter-spacing:0.02em;
+  cursor:pointer;color:rgba(255,255,255,0.38);
+  transition:all .2s;border:none;background:none;
+  font-family:'Instrument Sans',sans-serif;
+}
+.flow-tab.active{background:#fff;color:var(--ink);}
+.flow-tab:hover:not(.active){color:rgba(255,255,255,.7);}
+
+.flow-layout{
+  display:grid;grid-template-columns:300px 1fr;
+  gap:64px;align-items:start;margin-top:32px;
+}
+
+/* Phone */
+.phone-shell{
+  width:280px;
+  background:#fff;
+  border-radius:40px;
+  border:8px solid #0D0D1E;
+  overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.06),0 50px 100px rgba(0,0,0,0.7);
+}
+.phone-notch{
+  height:26px;background:#0D0D1E;
+  display:flex;align-items:center;justify-content:center;
+}
+.phone-pill{width:80px;height:10px;background:#050510;border-radius:99px;}
+.phone-screen{min-height:520px;background:#F7F8FA;position:relative;overflow:hidden;}
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* Checkout UI */
+.ck-header{
+  background:#fff;padding:12px 16px;
+  display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid #EAECF0;
+}
+.ck-brand-dot{
+  width:26px;height:26px;border-radius:7px;
+  background:var(--rz-navy);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#fff;
+  font-family:'Playfair Display',serif;
+}
+.ck-brand-name{font-size:12px;font-weight:600;color:var(--ink);}
+.ck-secure{
+  margin-left:auto;font-size:9px;color:#36B37E;
+  display:flex;align-items:center;gap:3px;font-weight:600;
+}
+.ck-amount-bar{
+  background:var(--rz-navy);padding:12px 16px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.ck-amount-lbl{font-size:10px;color:rgba(255,255,255,0.45);}
+.ck-amount-val{
+  font-family:'Playfair Display',serif;
+  font-size:20px;font-weight:900;color:#fff;
+}
+.ck-amount-order{font-size:9px;color:rgba(255,255,255,0.3);margin-top:1px;}
+.ck-body{padding:14px 16px;}
+
+.method-tabs{
+  display:flex;background:#EAECF0;
+  border-radius:8px;padding:3px;gap:2px;margin-bottom:14px;
+}
+.m-tab{
+  flex:1;padding:6px 3px;border-radius:5px;border:none;
+  font-size:9px;font-weight:600;text-align:center;cursor:pointer;
+  color:#6B7280;background:none;
+  font-family:'Instrument Sans',sans-serif;transition:all .15s;
+}
+.m-tab.active{background:#fff;color:var(--ink);}
+
+.last-used-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(51,149,255,0.1);
+  color:var(--rz-blue);
+  font-size:9px;font-weight:600;
+  padding:2px 8px;border-radius:4px;
+  margin-bottom:10px;
+  font-family:'Instrument Sans',sans-serif;
+}
+
+.upi-row{
+  background:#F7F8FA;border:1.5px solid #EAECF0;
+  border-radius:8px;padding:10px 12px;
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:7px;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.upi-row:hover,.upi-row.selected{border-color:var(--rz-blue);}
+.upi-row.selected{background:#F0F6FF;}
+.upi-logo{width:28px;height:28px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-size:14px;}
+.upi-name{font-size:11px;font-weight:600;color:var(--ink);}
+.upi-sub{font-size:9px;color:#6B7280;}
+.upi-radio{
+  margin-left:auto;width:14px;height:14px;border-radius:50%;
+  border:2px solid #CBD5E0;position:relative;
+}
+.upi-row.selected .upi-radio{border-color:var(--rz-blue);background:var(--rz-blue);}
+.upi-row.selected .upi-radio::after{
+  content:'';position:absolute;inset:2px;border-radius:50%;background:#fff;
+}
+.upi-id-wrap{
+  border:1.5px solid #EAECF0;border-radius:8px;padding:10px 12px;
+  display:flex;align-items:center;gap:6px;margin-bottom:10px;background:#fff;
+}
+.upi-id-wrap input{
+  border:none;outline:none;font-size:11px;color:var(--ink);flex:1;background:transparent;
+  font-family:'Instrument Sans',sans-serif;
+}
+.upi-id-wrap input::placeholder{color:#9CA3AF;}
+.upi-verify{font-size:10px;font-weight:600;color:var(--rz-blue);cursor:pointer;}
+.pay-btn{
+  width:100%;background:var(--rz-navy);color:#fff;border:none;
+  border-radius:9px;padding:13px;
+  font-family:'Playfair Display',serif;
+  font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:opacity .2s,transform .15s;letter-spacing:0.02em;
+}
+.pay-btn:hover{opacity:.9;transform:translateY(-1px)}
+.trust-row{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:8px 0 2px;
+}
+.trust-item{font-size:9px;color:#9CA3AF;display:flex;align-items:center;gap:3px;}
+.trust-dot{width:2px;height:2px;border-radius:50%;background:#CBD5E0;}
+
+/* Loading screen */
+.load-screen{padding:36px 20px;text-align:center;}
+.spinner-wrap{width:60px;height:60px;margin:24px auto 16px;position:relative;}
+.spinner-ring{
+  width:60px;height:60px;border-radius:50%;
+  border:3px solid #EAECF0;
+  border-top-color:var(--rz-blue);
+  animation:spin .8s linear infinite;position:absolute;inset:0;
+}
+.spinner-inner{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--rz-navy);position:absolute;top:11px;left:11px;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:16px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:5px;}
+.load-sub{font-size:11px;color:#6B7280;margin-bottom:20px;}
+.load-steps{text-align:left;background:#F7F8FA;border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:9px;}
+.load-step{display:flex;align-items:center;gap:9px;font-size:11px;color:#6B7280;font-family:'Instrument Sans',sans-serif;}
+.step-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+.step-done{background:#DCF5EB;color:var(--green);}
+.step-active{background:rgba(51,149,255,0.1);color:var(--rz-blue);}
+.step-pend{background:#EAECF0;color:#9CA3AF;}
+.load-step.done{color:var(--ink);}
+.load-step.active{color:var(--rz-blue);font-weight:600;}
+.load-warn{
+  background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;
+  padding:10px 12px;text-align:left;display:flex;gap:8px;margin-top:12px;
+}
+.lw-text{font-size:10px;color:var(--amber);line-height:1.55;font-weight:500;}
+
+/* Success screen */
+.succ-screen{padding:28px 18px;text-align:center;}
+.succ-icon{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--green-bg);margin:12px auto 18px;
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  animation:popIn .4s cubic-bezier(.16,1,.3,1);
+}
+@keyframes popIn{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+.succ-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--green);margin-bottom:3px;}
+.succ-sub{font-size:11px;color:#6B7280;margin-bottom:18px;}
+.txn-card{background:#fff;border:1px solid #EAECF0;border-radius:10px;padding:14px;text-align:left;margin-bottom:14px;}
+.txn-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid #F3F4F6;font-family:'Instrument Sans',sans-serif;}
+.txn-row:last-child{border:none;}
+.txn-k{color:#6B7280;}
+.txn-v{font-weight:600;color:var(--ink);}
+.txn-v.grn{color:var(--green);}
+.succ-actions{display:flex;gap:7px;}
+.btn-sec{flex:1;padding:10px;border-radius:7px;border:1.5px solid #EAECF0;background:#fff;font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;font-family:'Instrument Sans',sans-serif;}
+.btn-pri{flex:1;padding:10px;border-radius:7px;border:none;background:var(--rz-navy);font-size:11px;font-weight:600;color:#fff;cursor:pointer;font-family:'Instrument Sans',sans-serif;}
+
+/* Failure screen */
+.fail-screen{padding:28px 18px;text-align:center;}
+.fail-icon{
+  width:64px;height:64px;border-radius:50%;background:var(--red-bg);
+  margin:12px auto 18px;display:flex;align-items:center;justify-content:center;font-size:28px;
+  animation:popIn .4s cubic-bezier(.16,1,.3,1);
+}
+.fail-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--red);margin-bottom:3px;}
+.fail-sub{font-size:11px;color:#6B7280;margin-bottom:10px;}
+.fail-reason{background:#FFF3F3;border:1px solid #FECDCA;border-radius:9px;padding:12px;text-align:left;margin-bottom:12px;}
+.fail-reason-title{font-size:11px;font-weight:600;color:var(--red);margin-bottom:3px;font-family:'Instrument Sans',sans-serif;}
+.fail-reason-body{font-size:11px;color:#6B7280;line-height:1.55;font-family:'Instrument Sans',sans-serif;}
+.retry-opts{display:flex;flex-direction:column;gap:6px;}
+.retry-btn{
+  padding:10px 14px;border-radius:7px;
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:500;cursor:pointer;
+  transition:background .15s;border:1.5px solid transparent;
+  font-family:'Instrument Sans',sans-serif;
+}
+.retry-btn.primary{background:var(--rz-navy);color:#fff;border-color:var(--rz-navy);font-weight:700;justify-content:center;}
+.retry-btn.alt{background:#fff;color:var(--ink);border-color:#EAECF0;}
+
+/* Network screen */
+.net-screen{padding:28px 18px;text-align:center;}
+.net-icon{
+  width:64px;height:64px;border-radius:50%;background:var(--amber-bg);
+  margin:12px auto 18px;display:flex;align-items:center;justify-content:center;font-size:28px;
+  animation:popIn .4s cubic-bezier(.16,1,.3,1);
+}
+.net-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--amber);margin-bottom:3px;}
+.net-sub{font-size:11px;color:#6B7280;margin-bottom:14px;}
+.safety-banner{
+  background:#FFFBEB;border:1px solid #FDE68A;border-radius:9px;
+  padding:11px 13px;text-align:left;display:flex;gap:9px;margin-bottom:12px;
+}
+.sb-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.sb-text{font-size:11px;color:var(--amber);line-height:1.55;font-weight:500;font-family:'Instrument Sans',sans-serif;}
+.net-actions{display:flex;flex-direction:column;gap:6px;}
+.check-btn{padding:12px;border-radius:7px;border:none;background:#F59F00;color:#fff;font-family:'Playfair Display',serif;font-size:12px;font-weight:700;cursor:pointer;width:100%;}
+.supp-btn{padding:11px;border-radius:7px;border:1.5px solid #EAECF0;background:#fff;font-size:11px;color:var(--ink);cursor:pointer;font-family:'Instrument Sans',sans-serif;font-weight:500;width:100%;}
+
+/* Annotations */
+.ann-panel{display:flex;flex-direction:column;gap:24px;}
+.ann-head{
+  font-family:var(--mono);font-size:10px;
+  font-weight:500;letter-spacing:0.12em;text-transform:uppercase;
+  color:rgba(255,255,255,0.25);margin-bottom:4px;
+}
+.ann{display:flex;gap:16px;align-items:flex-start;}
+.ann-bullet{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--rz-blue);color:#fff;
+  font-family:'Playfair Display',serif;font-size:13px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;
+}
+.ann-title{
+  font-family:'Playfair Display',serif;
+  font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;
+}
+.ann-text{font-size:14px;color:rgba(255,255,255,0.45);line-height:1.7;}
+.ann-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:99px;
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  margin-top:8px;
+}
+.ac-green{background:rgba(78,222,150,0.12);color:#4EDE96;}
+.ac-blue{background:rgba(51,149,255,0.12);color:var(--rz-blue);}
+.ac-amber{background:rgba(245,159,0,0.12);color:#F59F00;}
+
+/* ── DESIGN DECISIONS ── */
+.decisions-section{background:var(--paper);}
+
+.decisions-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:64px;
+}
+
+.decision-card{
+  background:#fff;border:1px solid var(--stroke);
+  border-radius:20px;padding:36px;
+  position:relative;overflow:hidden;
+  transition:transform .25s,box-shadow .25s;
+}
+.decision-card:hover{transform:translateY(-4px);box-shadow:0 24px 72px rgba(0,0,0,0.07)}
+.decision-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--rz-navy),var(--rz-blue));
+  transform:scaleX(0);transition:transform .3s;transform-origin:left;
+}
+.decision-card:hover::after{transform:scaleX(1)}
+.dc-icon{font-size:28px;margin-bottom:18px;display:block;}
+.dc-title{
+  font-family:'Playfair Display',serif;
+  font-size:20px;font-weight:700;margin-bottom:10px;
+}
+.dc-body{font-size:14px;color:var(--ink-50);line-height:1.75;margin-bottom:16px;}
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+.ba-item{padding:10px 12px;border-radius:8px;font-size:12px;}
+.ba-before{background:var(--red-bg);color:var(--red);}
+.ba-after{background:var(--green-bg);color:var(--green);}
+.ba-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;opacity:0.6;font-family:var(--mono);}
+.ba-text{font-weight:500;line-height:1.5;}
+
+/* ── IMPACT SECTION ── */
+.impact-section{background:var(--rz-deep);color:#fff;}
+.impact-section .section-pre{color:#4EDE96;}
+.impact-section .section-pre::before{background:#4EDE96;}
+.impact-section .section-h{color:#fff;}
+
+.impact-layout{
+  display:grid;grid-template-columns:1fr 1fr;gap:2px;
+  border-radius:20px;overflow:hidden;margin-top:64px;
+}
+.impact-tile{
+  background:rgba(255,255,255,0.04);padding:44px 40px;
+  position:relative;transition:background .3s;
+}
+.impact-tile:hover{background:rgba(255,255,255,0.07)}
+.it-num{
+  font-family:'Playfair Display',serif;
+  font-size:64px;font-weight:900;line-height:1;margin-bottom:8px;
+}
+.it-num.green{color:#4EDE96;}
+.it-num.blue{color:var(--rz-blue);}
+.it-num.white{
+  background:linear-gradient(135deg,#fff 30%,rgba(255,255,255,.4));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.it-label{font-size:14px;color:rgba(255,255,255,0.45);line-height:1.5;max-width:220px;}
+.it-dir{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:10px;}
+.it-dir.up{color:#4EDE96;}
+.it-dir.down{color:#FF7171;}
+
+/* ── SYSTEM SECTION ── */
+.system-section{background:var(--paper-warm);}
+
+.component-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:64px;
+}
+.comp-card{
+  background:#fff;border:1px solid var(--stroke);
+  border-radius:14px;padding:20px;text-align:center;
+  transition:transform .2s,box-shadow .2s;
+}
+.comp-card:hover{transform:translateY(-4px);box-shadow:0 18px 48px rgba(0,0,0,0.07)}
+.comp-icon{
+  height:68px;border-radius:8px;background:rgba(51,149,255,0.07);
+  display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px;
+}
+.comp-name{
+  font-family:'Playfair Display',serif;
+  font-size:13px;font-weight:700;margin-bottom:4px;
+}
+.comp-desc{font-size:11px;color:var(--ink-50);line-height:1.6;}
+
+/* ── REFLECTION SECTION ── */
+.reflection-section{background:var(--ink);color:#fff;}
+.reflection-section .section-pre{color:rgba(255,255,255,0.3);}
+.reflection-section .section-pre::before{background:rgba(255,255,255,0.2);}
+.reflection-section .section-h{color:#fff;}
+
+.reflection-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:64px;
+}
+.ref-card{
+  background:#0D0D18;border-radius:16px;padding:28px;
+  border:1px solid rgba(255,255,255,0.05);
+}
+.ref-phase{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;
+  color:rgba(255,255,255,0.28);margin-bottom:12px;
+}
+.ref-title{
+  font-family:'Playfair Display',serif;
+  font-size:18px;font-weight:700;color:#fff;margin-bottom:10px;
+}
+.ref-items{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.ref-items li{
+  font-size:13px;color:rgba(255,255,255,0.4);
+  display:flex;align-items:flex-start;gap:8px;line-height:1.55;
+}
+.ref-items li::before{content:'→';color:var(--rz-blue);flex-shrink:0;}
+
+/* ── LEARNINGS BLOCK ── */
+.learnings-block{
+  margin-top:64px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:20px;
+  padding:40px;
+  display:grid;grid-template-columns:1fr 1fr;gap:32px;
+}
+.learning-item{display:flex;gap:16px;}
+.li-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--rz-blue);
+  flex-shrink:0;margin-top:7px;
+}
+.li-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:5px;}
+.li-text{font-size:14px;color:rgba(255,255,255,0.4);line-height:1.7;}
+
+/* ── SNAPMINT CALLOUT ── */
+.snapmint-callout{
+  background:linear-gradient(135deg,#0F1F45 0%,#061A40 100%);
+  border-top:1px solid rgba(255,255,255,0.06);
+  padding:80px;display:flex;align-items:center;gap:60px;
+}
+.sc-left{flex:1;}
+.sc-kicker{
+  font-family:var(--mono);font-size:10px;
+  color:var(--rz-blue);letter-spacing:0.15em;text-transform:uppercase;
+  margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.sc-kicker::before{content:'';width:18px;height:1px;background:var(--rz-blue);}
+.sc-h{
+  font-family:'Playfair Display',serif;
+  font-size:36px;font-weight:900;line-height:1.1;
+  color:#fff;letter-spacing:-0.02em;margin-bottom:14px;
+}
+.sc-h em{color:var(--rz-blue);font-style:italic;}
+.sc-p{font-size:15px;color:rgba(255,255,255,0.45);line-height:1.75;max-width:480px;}
+.sc-right{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+  flex-shrink:0;width:340px;
+}
+.sc-skill{
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;padding:18px;
+}
+.sc-skill-icon{font-size:20px;margin-bottom:8px;display:block;}
+.sc-skill-label{font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);line-height:1.4;}
+
+/* ── FOOTER ── */
+footer{
+  background:#02102A;padding:48px 80px;
+  display:flex;justify-content:space-between;align-items:center;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+.footer-brand{
+  font-family:'Playfair Display',serif;
+  font-size:18px;font-weight:900;color:#fff;
+}
+.footer-brand em{color:var(--rz-blue);font-style:italic;}
+.footer-meta{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.2);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .hero{grid-template-columns:1fr;padding:100px 48px 80px;}
+  .hero-right{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .funnel-container{grid-template-columns:1fr;}
+  .flow-layout{grid-template-columns:1fr;}
+  .impact-layout{grid-template-columns:1fr 1fr;}
+  .reflection-grid{grid-template-columns:1fr 1fr;}
+  .snapmint-callout{flex-direction:column;padding:60px 48px;}
+  .sc-right{width:100%;grid-template-columns:repeat(4,1fr);}
+}
+@media(max-width:768px){
+  .nav-links{display:none}
+  section{padding:48px 32px 72px}
+  .chapter{padding:48px 32px 0}
+  .hero{padding:80px 32px 60px}
+  .hero-stat-card .hsc-num{font-size:28px}
+  .problems-layout,.research-grid,.decisions-grid,.component-grid,.reflection-grid{grid-template-columns:1fr}
+  .impact-layout{grid-template-columns:1fr}
+  footer{flex-direction:column;gap:12px;text-align:center;padding:36px 32px}
+}
+
+/* Scroll animations */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:none;}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">Razorpay <em>Checkout</em></div>
+  <div class="nav-links">
+    <a href="#problem" class="nav-link">Problem</a>
+    <a href="#research" class="nav-link">Research</a>
+    <a href="#flows" class="nav-link">Flows</a>
+    <a href="#decisions" class="nav-link">Decisions</a>
+    <a href="#impact" class="nav-link">Impact</a>
+    <a href="#system" class="nav-link">System</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-bg-orb"></div>
+  <div class="hero-bg-orb2"></div>
+
+  <div class="hero-left">
+    <div class="hero-kicker">UX Case Study · Fintech · 2024</div>
+    <h1 class="hero-h1">Razorpay<br><em>Checkout</em><br>Redesign</h1>
+    <p class="hero-desc">Rethinking India's most-used payment interface — from drop-off prevention to failure recovery, at scale.</p>
+    <div class="hero-attrs">
+      <div class="attr">
+        <span class="attr-label">Role</span>
+        <span class="attr-val">Lead UX Designer</span>
+      </div>
+      <div class="attr">
+        <span class="attr-label">Platform</span>
+        <span class="attr-val">Android · iOS · Web</span>
+      </div>
+      <div class="attr">
+        <span class="attr-label">Duration</span>
+        <span class="attr-val">12 Weeks</span>
+      </div>
+      <div class="attr">
+        <span class="attr-label">Tools</span>
+        <span class="attr-val">Figma · Maze · Hotjar</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-stat-card">
+      <div class="hsc-icon">📉</div>
+      <div>
+        <div class="hsc-num red">30%</div>
+        <div class="hsc-label">Drop-off at checkout</div>
+      </div>
+    </div>
+    <div class="hero-stat-card">
+      <div class="hsc-icon">💸</div>
+      <div>
+        <div class="hsc-num white">₹1.2Cr</div>
+        <div class="hsc-label">Daily revenue at risk</div>
+      </div>
+    </div>
+    <div class="hero-stat-card">
+      <div class="hsc-icon">🎯</div>
+      <div>
+        <div class="hsc-num green">+18%</div>
+        <div class="hsc-label">Completion rate post-redesign</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    Scroll to explore
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M8 3v10M3 9l5 5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ── PROBLEM ── -->
+<div class="chapter reveal" id="problem">
+  <div class="chapter-inner">
+    <span class="chapter-num">01 —</span>
+    <span class="chapter-title">Problem Statement</span>
+  </div>
+</div>
+
+<section class="problem-section reveal">
+  <div class="section-pre">Where users were failing</div>
+  <h2 class="section-h" style="color:#fff">Three critical<br>breakdown points</h2>
+  <p class="section-body">Analytics data from 3 months of session recordings, heatmaps, and exit surveys across 45,000 transactions revealed where money — and trust — was being lost.</p>
+
+  <div class="problems-layout">
+    <div class="problem-tile">
+      <div class="pt-index">01</div>
+      <span class="pt-icon">😕</span>
+      <div class="pt-title">Payment Method Confusion</div>
+      <p class="pt-body">Users couldn't distinguish between UPI apps, UPI ID, and QR — leading to wrong method selection and abandoned sessions at the most critical moment.</p>
+      <div class="pt-metric">
+        <span class="pt-metric-num">42%</span>
+        <div class="pt-metric-label">users tried wrong method first</div>
+      </div>
+    </div>
+    <div class="problem-tile">
+      <div class="pt-index">02</div>
+      <span class="pt-icon">❌</span>
+      <div class="pt-title">Silent Failure States</div>
+      <p class="pt-body">When payments failed, generic error messages provided no actionable next steps — leaving users stranded mid-transaction with no idea what went wrong or what to do next.</p>
+      <div class="pt-metric">
+        <span class="pt-metric-num">67%</span>
+        <div class="pt-metric-label">abandoned after first failure</div>
+      </div>
+    </div>
+    <div class="problem-tile">
+      <div class="pt-index">03</div>
+      <span class="pt-icon">🔄</span>
+      <div class="pt-title">No Processing Transparency</div>
+      <p class="pt-body">During bank processing, users saw no status updates — causing them to close the app while fearing double charges, creating a cascade of support tickets and refund requests.</p>
+      <div class="pt-metric">
+        <span class="pt-metric-num">28%</span>
+        <div class="pt-metric-label">closed app during processing</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FUNNEL ── -->
+<div class="chapter reveal">
+  <div class="chapter-inner">
+    <span class="chapter-num">02 —</span>
+    <span class="chapter-title">Data Analysis</span>
+  </div>
+</div>
+
+<section class="funnel-section reveal" id="funnel">
+  <div class="section-pre">The drop-off funnel</div>
+  <h2 class="section-h">Where the leaks were</h2>
+  <p class="section-body">Session analytics across 45,000 transactions in November 2023 revealed a staggered funnel — with the sharpest cliff at payment confirmation.</p>
+
+  <div class="funnel-container">
+    <div class="funnel-bars">
+      <div class="funnel-row">
+        <div class="funnel-bar-area">
+          <div class="funnel-step-label">
+            <span>Product page → Checkout initiated</span>
+            <span class="funnel-drop-badge ok">Baseline</span>
+          </div>
+          <div class="funnel-track"><div class="funnel-fill" style="width:100%"></div></div>
+        </div>
+        <div class="funnel-pct-val">100%</div>
+      </div>
+      <div class="funnel-row">
+        <div class="funnel-bar-area">
+          <div class="funnel-step-label">
+            <span>Address / details confirmed</span>
+            <span class="funnel-drop-badge ok">−8%</span>
+          </div>
+          <div class="funnel-track"><div class="funnel-fill" style="width:92%"></div></div>
+        </div>
+        <div class="funnel-pct-val">92%</div>
+      </div>
+      <div class="funnel-row">
+        <div class="funnel-bar-area">
+          <div class="funnel-step-label">
+            <span>Payment method selected</span>
+            <span class="funnel-drop-badge warn">−18%</span>
+          </div>
+          <div class="funnel-track"><div class="funnel-fill warn" style="width:74%"></div></div>
+        </div>
+        <div class="funnel-pct-val" style="color:var(--amber)">74%</div>
+      </div>
+      <div class="funnel-row">
+        <div class="funnel-bar-area">
+          <div class="funnel-step-label">
+            <span>Pay button clicked</span>
+            <span class="funnel-drop-badge warn">−12%</span>
+          </div>
+          <div class="funnel-track"><div class="funnel-fill warn" style="width:62%"></div></div>
+        </div>
+        <div class="funnel-pct-val" style="color:var(--amber)">62%</div>
+      </div>
+      <div class="funnel-row">
+        <div class="funnel-bar-area">
+          <div class="funnel-step-label">
+            <span>Payment processed → Success</span>
+            <span class="funnel-drop-badge bad">−32%</span>
+          </div>
+          <div class="funnel-track"><div class="funnel-fill bad" style="width:30%"></div></div>
+        </div>
+        <div class="funnel-pct-val" style="color:var(--red)">30%</div>
+      </div>
+    </div>
+
+    <div class="funnel-insight">
+      <div class="fi-label">Key findings</div>
+      <div class="fi-stat">
+        <div class="fi-num red">32%</div>
+        <div class="fi-desc">Largest single drop — between "pay clicked" and "success". This was the primary redesign target.</div>
+      </div>
+      <div class="fi-stat">
+        <div class="fi-num amber">18%</div>
+        <div class="fi-desc">Users lost at method selection — purely a UX clarity problem, with no technical barrier.</div>
+      </div>
+      <div class="fi-stat">
+        <div class="fi-num" style="color:#fff">2x</div>
+        <div class="fi-desc">Mobile users dropped off at 2× the rate of desktop — validating the mobile-first redesign priority.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── RESEARCH ── -->
+<div class="chapter reveal" id="research">
+  <div class="chapter-inner">
+    <span class="chapter-num">03 —</span>
+    <span class="chapter-title">User Research</span>
+  </div>
+</div>
+
+<section class="reveal" style="background:var(--paper);">
+  <div class="section-pre">Voices from the field</div>
+  <h2 class="section-h">What users actually said</h2>
+  <p class="section-body">12 moderated usability sessions + 340 Hotjar session recordings + exit survey responses shaped our hypothesis. These three quotes drove every major design decision.</p>
+
+  <div class="research-grid">
+    <div class="quote-card">
+      <div class="qc-mark">"</div>
+      <p class="qc-text">I clicked pay and it just showed a spinning thing for like 2 minutes. I had no idea if my money was gone. I just closed the app.</p>
+      <div class="qc-person"><strong>Priya, 26</strong> — Fashion buyer, Tier-2 city</div>
+      <span class="qc-tag red">Fear of double-charge</span>
+    </div>
+    <div class="quote-card">
+      <div class="qc-mark">"</div>
+      <p class="qc-text">There were like 6 UPI options and I didn't know which one was for my bank. I just gave up and used my card instead, but that also failed.</p>
+      <div class="qc-person"><strong>Arjun, 31</strong> — Software engineer, Bangalore</div>
+      <span class="qc-tag blue">Method confusion</span>
+    </div>
+    <div class="quote-card">
+      <div class="qc-mark">"</div>
+      <p class="qc-text">It said "payment failed" but nothing else. I didn't know if my bank blocked it or if I typed something wrong. I just left.</p>
+      <div class="qc-person"><strong>Sunita, 38</strong> — Teacher, Pune</div>
+      <span class="qc-tag red">Silent failure</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── FLOW DEMO ── -->
+<div class="chapter reveal" id="flows">
+  <div class="chapter-inner">
+    <span class="chapter-num">04 —</span>
+    <span class="chapter-title">Redesigned Flows</span>
+  </div>
+</div>
+
+<section class="flow-section reveal">
+  <div class="section-pre">Interactive prototype</div>
+  <h2 class="section-h" style="color:#fff">The redesigned<br>checkout experience</h2>
+  <p class="section-body">Every state redesigned — from initial method selection to the hardest edge case: network loss mid-payment.</p>
+
+  <div class="flow-tabs">
+    <button class="flow-tab active" onclick="switchFlow(this,'checkout')">Checkout</button>
+    <button class="flow-tab" onclick="switchFlow(this,'loading')">Processing</button>
+    <button class="flow-tab" onclick="switchFlow(this,'success')">Success</button>
+    <button class="flow-tab" onclick="switchFlow(this,'failure')">Failure</button>
+    <button class="flow-tab" onclick="switchFlow(this,'network')">Network</button>
+  </div>
+
+  <div class="flow-layout">
+    <div class="phone-shell">
+      <div class="phone-notch"><div class="phone-pill"></div></div>
+      <div class="phone-screen">
+
+        <!-- CHECKOUT SCREEN -->
+        <div class="screen active" id="screen-checkout">
+          <div class="ck-header">
+            <div class="ck-brand-dot">R</div>
+            <div class="ck-brand-name">Razorpay Checkout</div>
+            <div class="ck-secure">🔒 Secure</div>
+          </div>
+          <div class="ck-amount-bar">
+            <div>
+              <div class="ck-amount-lbl">Total payable</div>
+              <div class="ck-amount-val">₹1,499</div>
+              <div class="ck-amount-order">Order #ZPT-8821</div>
+            </div>
+            <div style="font-size:22px;">🛍️</div>
+          </div>
+          <div class="ck-body">
+            <div class="method-tabs">
+              <button class="m-tab active">UPI</button>
+              <button class="m-tab">Card</button>
+              <button class="m-tab">NetBanking</button>
+              <button class="m-tab">Wallet</button>
+            </div>
+            <div class="last-used-badge">⚡ Last used 2 days ago</div>
+            <div class="upi-row selected">
+              <div class="upi-logo" style="background:#1A73E8">📱</div>
+              <div>
+                <div class="upi-name">Google Pay</div>
+                <div class="upi-sub">9876543210@okaxis</div>
+              </div>
+              <div class="upi-radio"></div>
+            </div>
+            <div class="upi-row">
+              <div class="upi-logo" style="background:#5F259F">💜</div>
+              <div>
+                <div class="upi-name">PhonePe</div>
+                <div class="upi-sub">Tap to use</div>
+              </div>
+              <div class="upi-radio"></div>
+            </div>
+            <div class="upi-id-wrap">
+              <span style="font-size:11px;color:#9CA3AF;">@</span>
+              <input type="text" placeholder="Enter UPI ID manually">
+              <span class="upi-verify">Verify</span>
+            </div>
+            <button class="pay-btn">🔒 Pay ₹1,499</button>
+            <div class="trust-row">
+              <span class="trust-item">🔐 256-bit SSL</span>
+              <span class="trust-dot"></span>
+              <span class="trust-item">PCI-DSS</span>
+              <span class="trust-dot"></span>
+              <span class="trust-item">RBI Compliant</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOADING SCREEN -->
+        <div class="screen" id="screen-loading">
+          <div class="ck-header">
+            <div class="ck-brand-dot">R</div>
+            <div class="ck-brand-name">Processing payment...</div>
+          </div>
+          <div class="load-screen">
+            <div class="spinner-wrap">
+              <div class="spinner-ring"></div>
+              <div class="spinner-inner">💳</div>
+            </div>
+            <div class="load-title">Authorizing payment</div>
+            <div class="load-sub">Waiting for your bank's approval</div>
+            <div class="load-steps">
+              <div class="load-step done"><div class="step-dot step-done">✓</div>Payment sent to bank</div>
+              <div class="load-step done"><div class="step-dot step-done">✓</div>Bank received request</div>
+              <div class="load-step active"><div class="step-dot step-active">⋯</div>Waiting for approval</div>
+              <div class="load-step"><div class="step-dot step-pend">○</div>Confirming payment</div>
+            </div>
+            <div class="load-warn">
+              <span style="font-size:14px;flex-shrink:0">⚠️</span>
+              <div class="lw-text">Please don't close this screen. Your payment is being processed by your bank.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUCCESS SCREEN -->
+        <div class="screen" id="screen-success">
+          <div class="ck-header">
+            <div class="ck-brand-dot" style="background:#0A8754">✓</div>
+            <div class="ck-brand-name">Payment Successful</div>
+          </div>
+          <div class="succ-screen">
+            <div class="succ-icon">✅</div>
+            <div class="succ-title">Payment Complete</div>
+            <div class="succ-sub">Order confirmed · Just now</div>
+            <div class="txn-card">
+              <div class="txn-row"><span class="txn-k">Amount</span><span class="txn-v grn">₹1,499.00</span></div>
+              <div class="txn-row"><span class="txn-k">Method</span><span class="txn-v">Google Pay</span></div>
+              <div class="txn-row"><span class="txn-k">UPI Ref</span><span class="txn-v">326841002847</span></div>
+              <div class="txn-row"><span class="txn-k">Order ID</span><span class="txn-v">ZPT-8821</span></div>
+              <div class="txn-row"><span class="txn-k">Time</span><span class="txn-v">2:47 PM · Today</span></div>
+            </div>
+            <div class="succ-actions">
+              <button class="btn-sec">📄 Receipt</button>
+              <button class="btn-pri">📦 Track Order</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAILURE SCREEN -->
+        <div class="screen" id="screen-failure">
+          <div class="ck-header">
+            <div class="ck-brand-dot" style="background:#C0392B">!</div>
+            <div class="ck-brand-name">Payment Failed</div>
+          </div>
+          <div class="fail-screen">
+            <div class="fail-icon">❌</div>
+            <div class="fail-title">Payment Failed</div>
+            <div class="fail-sub">Don't worry — no money was deducted</div>
+            <div class="fail-reason">
+              <div class="fail-reason-title">Why this happened</div>
+              <div class="fail-reason-body">Your bank declined the transaction due to an incorrect UPI PIN. Your account has not been debited.</div>
+            </div>
+            <div class="retry-opts">
+              <button class="retry-btn primary">🔄 Retry with Google Pay</button>
+              <button class="retry-btn alt">💳 Try a different card</button>
+              <button class="retry-btn alt">🏦 Switch to Net Banking</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- NETWORK SCREEN -->
+        <div class="screen" id="screen-network">
+          <div class="ck-header">
+            <div class="ck-brand-dot" style="background:#B7660A">📶</div>
+            <div class="ck-brand-name">Network Issue</div>
+          </div>
+          <div class="net-screen">
+            <div class="net-icon">⚠️</div>
+            <div class="net-title">Connection Lost</div>
+            <div class="net-sub">We couldn't confirm your payment status</div>
+            <div class="safety-banner">
+              <span class="sb-icon">🛡️</span>
+              <div class="sb-text">Your money is safe. If any amount was deducted, it will be refunded automatically within 24 hours. You will NOT be charged twice.</div>
+            </div>
+            <div class="net-actions">
+              <button class="check-btn">🔍 Check Payment Status</button>
+              <button class="supp-btn">💬 Contact Support</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- phone-screen -->
+    </div><!-- phone-shell -->
+
+    <!-- ANNOTATIONS -->
+    <div>
+      <div class="ann-panel" id="ann-checkout">
+        <div class="ann-head">Design rationale</div>
+        <div class="ann">
+          <div class="ann-bullet">1</div>
+          <div>
+            <div class="ann-title">Smart method surfacing</div>
+            <div class="ann-text">The most recently used UPI app surfaces first — reducing cognitive load. Research showed 78% of users re-use the same payment method.</div>
+            <span class="ann-chip ac-green">↑ 22% faster method selection</span>
+          </div>
+        </div>
+        <div class="ann">
+          <div class="ann-bullet">2</div>
+          <div>
+            <div class="ann-title">Persistent trust indicators</div>
+            <div class="ann-text">Bank-grade encryption + PCI-DSS badge visible below CTA. Small but measurable — trust badges reduced hesitation by 15% in A/B testing.</div>
+            <span class="ann-chip ac-blue">+15% CTA conversion</span>
+          </div>
+        </div>
+        <div class="ann">
+          <div class="ann-bullet">3</div>
+          <div>
+            <div class="ann-title">UPI ID inline verification</div>
+            <div class="ann-text">Real-time UPI ID validation with a "Verified ✓" state prevents failed payments caused by typos — a top source of preventable failures.</div>
+            <span class="ann-chip ac-green">−31% UPI ID errors</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ann-panel" id="ann-loading" style="display:none">
+        <div class="ann-head">Design rationale</div>
+        <div class="ann">
+          <div class="ann-bullet">1</div>
+          <div>
+            <div class="ann-title">4-step progress tracker</div>
+            <div class="ann-text">Clear step indicators give users visibility into where the bank is in the auth process — eliminating the "is it frozen?" anxiety that causes premature app closures.</div>
+            <span class="ann-chip ac-blue">−28% premature app closes</span>
+          </div>
+        </div>
+        <div class="ann">
+          <div class="ann-bullet">2</div>
+          <div>
+            <div class="ann-title">Don't-close warning banner</div>
+            <div class="ann-text">Contextual warning explaining why the screen must stay open — directly addresses the #1 cause of payment status confusion.</div>
+            <span class="ann-chip ac-amber">↓ 45% status support tickets</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ann-panel" id="ann-success" style="display:none">
+        <div class="ann-head">Design rationale</div>
+        <div class="ann">
+          <div class="ann-bullet">1</div>
+          <div>
+            <div class="ann-title">Complete transaction card</div>
+            <div class="ann-text">All critical info in one screenshottable card — amount, method, UPI ref, order ID, timestamp. Users get a receipt without needing email.</div>
+            <span class="ann-chip ac-green">+40% satisfaction score</span>
+          </div>
+        </div>
+        <div class="ann">
+          <div class="ann-bullet">2</div>
+          <div>
+            <div class="ann-title">"Track Order" as primary CTA</div>
+            <div class="ann-text">Keeps users engaged post-payment — reduces "where is my order?" support volume and creates a natural path back into the merchant's app.</div>
+            <span class="ann-chip ac-blue">↓ Post-purchase support volume</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ann-panel" id="ann-failure" style="display:none">
+        <div class="ann-head">Design rationale</div>
+        <div class="ann">
+          <div class="ann-bullet">1</div>
+          <div>
+            <div class="ann-title">Immediate debit reassurance</div>
+            <div class="ann-text">"No money was deducted" is the first thing users read. This single line reduced rage-quits by 35% — fear of losing money is the #1 cause of abandoned retries.</div>
+            <span class="ann-chip ac-green">−35% abandonments post-failure</span>
+          </div>
+        </div>
+        <div class="ann">
+          <div class="ann-bullet">2</div>
+          <div>
+            <div class="ann-title">Contextual retry options</div>
+            <div class="ann-text">Instead of one generic "Try Again", method-specific retry paths meet users at their level of trust — same method, card, or net banking.</div>
+            <span class="ann-chip ac-blue">+42% retry success rate</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ann-panel" id="ann-network" style="display:none">
+        <div class="ann-head">Design rationale</div>
+        <div class="ann">
+          <div class="ann-bullet">1</div>
+          <div>
+            <div class="ann-title">Double-charge prevention banner</div>
+            <div class="ann-text">Proactively addresses the user's #1 fear: "You will NOT be charged twice." The hardest UX problem in payments — solved with copy, not code.</div>
+            <span class="ann-chip ac-green">−60% double-payment tickets</span>
+          </div>
+        </div>
+        <div class="ann">
+          <div class="ann-bullet">2</div>
+          <div>
+            <div class="ann-title">Status check as primary CTA</div>
+            <div class="ann-text">"Check Payment Status" gives users agency — they can verify in real-time instead of waiting anxiously for an email confirmation.</div>
+            <span class="ann-chip ac-amber">+28% user confidence score</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── DESIGN DECISIONS ── -->
+<div class="chapter reveal" id="decisions">
+  <div class="chapter-inner">
+    <span class="chapter-num">05 —</span>
+    <span class="chapter-title">Design Thinking</span>
+  </div>
+</div>
+
+<section class="decisions-section reveal">
+  <div class="section-pre">Key design decisions</div>
+  <h2 class="section-h">What moved<br>the needle</h2>
+  <p class="section-body">Every change was validated through Maze usability tests (n=84) and A/B tested against the existing checkout. These four decisions drove the biggest impact.</p>
+
+  <div class="decisions-grid">
+    <div class="decision-card">
+      <span class="dc-icon">🎯</span>
+      <div class="dc-title">Personalized Method Ordering</div>
+      <p class="dc-body">We moved from alphabetical listing to recency-based ordering. The last-used payment method appears first with a "Last used" timestamp — reducing decision fatigue at the most critical moment.</p>
+      <div class="ba">
+        <div class="ba-item ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-text">Static alphabetical list. All methods look equal.</div>
+        </div>
+        <div class="ba-item ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-text">Smart ordering by recency + usage frequency.</div>
+        </div>
+      </div>
+    </div>
+    <div class="decision-card">
+      <span class="dc-icon">🔍</span>
+      <div class="dc-title">Failure Reason Transparency</div>
+      <p class="dc-body">Generic "Payment failed" messages were replaced with specific, plain-language explanations. "Your bank declined due to incorrect PIN" tells users exactly what to fix — removing guesswork entirely.</p>
+      <div class="ba">
+        <div class="ba-item ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-text">"Payment failed. Please try again."</div>
+        </div>
+        <div class="ba-item ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-text">Specific reason + targeted retry options.</div>
+        </div>
+      </div>
+    </div>
+    <div class="decision-card">
+      <span class="dc-icon">🛡️</span>
+      <div class="dc-title">Proactive Double-Charge Protection</div>
+      <p class="dc-body">On network loss, instead of leaving users in silence, we immediately display the refund guarantee banner. Addressing the fear proactively increased retry rates by 38%.</p>
+      <div class="ba">
+        <div class="ba-item ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-text">No message. User left in the dark.</div>
+        </div>
+        <div class="ba-item ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-text">"You will NOT be charged twice" — visible immediately.</div>
+        </div>
+      </div>
+    </div>
+    <div class="decision-card">
+      <span class="dc-icon">📊</span>
+      <div class="dc-title">Processing Step Indicators</div>
+      <p class="dc-body">Users needed to understand that slow doesn't mean broken. A 4-step progress tracker (sent → authorizing → processing → confirmed) reduced premature app closures that caused payment ambiguity.</p>
+      <div class="ba">
+        <div class="ba-item ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-text">Indeterminate spinner. Zero visibility.</div>
+        </div>
+        <div class="ba-item ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-text">4-step progress with current state highlighted.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── IMPACT ── -->
+<div class="chapter reveal" id="impact">
+  <div class="chapter-inner">
+    <span class="chapter-num">06 —</span>
+    <span class="chapter-title">Business Impact</span>
+  </div>
+</div>
+
+<section class="impact-section reveal">
+  <div class="section-pre">Numbers that matter</div>
+  <h2 class="section-h">Measured outcomes</h2>
+  <p class="section-body">Measured over 8 weeks post-launch across 120,000 transactions on 3 partner merchant apps: Zepto, BookMyShow, and Nykaa.</p>
+
+  <div class="impact-layout">
+    <div class="impact-tile">
+      <div class="it-num green">+18%</div>
+      <div class="it-label">Checkout Completion Rate</div>
+      <div class="it-dir up">↑ from 62% → 73%</div>
+    </div>
+    <div class="impact-tile">
+      <div class="it-num blue">−25%</div>
+      <div class="it-label">Payment Failure Confusion</div>
+      <div class="it-dir up">↑ More users retried after failure</div>
+    </div>
+    <div class="impact-tile">
+      <div class="it-num white">+42%</div>
+      <div class="it-label">Retry Success Rate</div>
+      <div class="it-dir up">↑ 2nd attempt conversions</div>
+    </div>
+    <div class="impact-tile">
+      <div class="it-num green">−60%</div>
+      <div class="it-label">Double-Charge Support Tickets</div>
+      <div class="it-dir down">↓ Network-related complaints</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SYSTEM ── -->
+<div class="chapter reveal" id="system">
+  <div class="chapter-inner">
+    <span class="chapter-num">07 —</span>
+    <span class="chapter-title">Design System</span>
+  </div>
+</div>
+
+<section class="system-section reveal">
+  <div class="section-pre">Reusable component architecture</div>
+  <h2 class="section-h">Built to scale</h2>
+  <p class="section-body">Every element was built as a Figma component with documented variants, states, and usage guidelines — enabling rapid deployment across all Razorpay merchant partners.</p>
+
+  <div class="component-grid">
+    <div class="comp-card">
+      <div class="comp-icon">💳</div>
+      <div class="comp-name">PaymentMethodRow</div>
+      <div class="comp-desc">4 states: default, hover, selected, disabled. Auto-surfaces recency data.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-icon">🔄</div>
+      <div class="comp-name">ProcessingState</div>
+      <div class="comp-desc">Animated progress tracker. Configurable 2–6 steps.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-icon">✅</div>
+      <div class="comp-name">SuccessCard</div>
+      <div class="comp-desc">Transaction details card. Dynamic fields from API response.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-icon">❌</div>
+      <div class="comp-name">FailureState</div>
+      <div class="comp-desc">Error code mapper. 22 error types covered in plain language.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-icon">⚠️</div>
+      <div class="comp-name">SafetyBanner</div>
+      <div class="comp-desc">Contextual warning/reassurance. 3 variants: info, warning, critical.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-icon">🔐</div>
+      <div class="comp-name">TrustIndicators</div>
+      <div class="comp-desc">Modular trust badges. Configurable per merchant compliance.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-icon">🔢</div>
+      <div class="comp-name">UPIInput</div>
+      <div class="comp-desc">Inline async validation. 3 states: idle, verifying, verified/error.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-icon">📲</div>
+      <div class="comp-name">AmountBar</div>
+      <div class="comp-desc">Sticky header with merchant branding and order context.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── REFLECTIONS ── -->
+<div class="chapter reveal">
+  <div class="chapter-inner">
+    <span class="chapter-num">08 —</span>
+    <span class="chapter-title">What I Learned</span>
+  </div>
+</div>
+
+<section class="reflection-section reveal">
+  <div class="section-pre">Reflections</div>
+  <h2 class="section-h">Beyond the pixels</h2>
+  <p class="section-body">What this project taught me about designing at the intersection of UX, trust, and financial infrastructure — and what I'd do differently.</p>
+
+  <div class="reflection-grid">
+    <div class="ref-card">
+      <div class="ref-phase">Phase 2 · Planned</div>
+      <div class="ref-title">Smarter Failure Recovery</div>
+      <ul class="ref-items">
+        <li>Bank-specific failure messaging (e.g. "SBI is under maintenance")</li>
+        <li>Retry scheduling: "Try again in 10 minutes for best results"</li>
+        <li>Cross-session payment recovery via link in email/SMS</li>
+      </ul>
+    </div>
+    <div class="ref-card">
+      <div class="ref-phase">Phase 3 · Planned</div>
+      <div class="ref-title">Accessibility & Reach</div>
+      <ul class="ref-items">
+        <li>Voice-enabled UPI flow for low-literacy users</li>
+        <li>WCAG 2.1 AA compliance audit across all states</li>
+        <li>Lite mode for 2G / weak network conditions</li>
+      </ul>
+    </div>
+    <div class="ref-card">
+      <div class="ref-phase">Phase 4 · Vision</div>
+      <div class="ref-title">Personalization Engine</div>
+      <ul class="ref-items">
+        <li>ML-powered payment method recommendation</li>
+        <li>Adaptive checkout based on device + network conditions</li>
+        <li>Merchant-specific trust signal customization</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="learnings-block">
+    <div class="learning-item">
+      <div class="li-dot"></div>
+      <div>
+        <div class="li-title">The hardest UX problems are emotional, not functional</div>
+        <div class="li-text">The double-charge fear wasn't a technical bug — it was a communication failure. The fix wasn't code, it was copy. Learning to identify emotional blockers changed how I approach every problem.</div>
+      </div>
+    </div>
+    <div class="learning-item">
+      <div class="li-dot"></div>
+      <div>
+        <div class="li-title">Design for the error state first</div>
+        <div class="li-text">I used to design the happy path first. This project proved the opposite: the failure state is where trust is built or permanently broken. Starting with the worst case makes the whole flow stronger.</div>
+      </div>
+    </div>
+    <div class="learning-item">
+      <div class="li-dot"></div>
+      <div>
+        <div class="li-title">Constraints make better designers</div>
+        <div class="li-text">The checkout SDK couldn't be rebuilt from scratch. Every solution had to work within Razorpay's existing component infrastructure. Real-world constraints pushed more creative, surgical thinking.</div>
+      </div>
+    </div>
+    <div class="learning-item">
+      <div class="li-dot"></div>
+      <div>
+        <div class="li-title">Numbers without narrative don't stick</div>
+        <div class="li-text">+18% completion rate is a good number. But "₹1.2 crore of daily at-risk revenue recovered" is the story that got stakeholder buy-in. Translating UX outcomes into business language is a core design skill.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SNAPMINT CALLOUT ── -->
+<div class="snapmint-callout">
+  <div class="sc-left">
+    <div class="sc-kicker">Why Snapmint</div>
+    <div class="sc-h">Credit that works for<br><em>everyone.</em></div>
+    <p class="sc-p">This work is rooted in the same belief that drives Snapmint — financial products should be transparent, frictionless, and genuinely useful. Designing for India's next 300 million credit users means designing for confusion, fear, and limited prior experience. That's not a constraint. That's the whole challenge.</p>
+  </div>
+  <div class="sc-right">
+    <div class="sc-skill">
+      <span class="sc-skill-icon">🔍</span>
+      <div class="sc-skill-label">User-obsessed research approach</div>
+    </div>
+    <div class="sc-skill">
+      <span class="sc-skill-icon">🧠</span>
+      <div class="sc-skill-label">End-to-end design ownership</div>
+    </div>
+    <div class="sc-skill">
+      <span class="sc-skill-icon">📊</span>
+      <div class="sc-skill-label">Data-driven iteration</div>
+    </div>
+    <div class="sc-skill">
+      <span class="sc-skill-icon">🏗️</span>
+      <div class="sc-skill-label">Design systems thinking</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-brand">Razorpay <em>Checkout</em> Redesign</div>
+    <div class="footer-meta" style="margin-top:6px;">UX Case Study · Sachi · 2024</div>
+  </div>
+  <div class="footer-meta" style="text-align:right;">
+    All metrics are illustrative<br>
+    Built for portfolio
+  </div>
+</footer>
+
+<script>
+// Progress bar
+window.addEventListener('scroll', () => {
+  const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+// Reveal on scroll
+const ro = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+// Nav active state
+const sections = document.querySelectorAll('[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  navLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+
+// Flow tab switching
+function switchFlow(btn, flow) {
+  document.querySelectorAll('.flow-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + flow).classList.add('active');
+  document.querySelectorAll('[id^="ann-"]').forEach(a => a.style.display = 'none');
+  const ann = document.getElementById('ann-' + flow);
+  if (ann) ann.style.display = 'flex';
+}
+
+// Method tab interaction
+document.querySelectorAll('.m-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.m-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// UPI row selection
+document.querySelectorAll('.upi-row').forEach(row => {
+  row.addEventListener('click', function() {
+    document.querySelectorAll('.upi-row').forEach(r => r.classList.remove('selected'));
+    this.classList.add('selected');
+  });
+});
+
+// Funnel animation
+const funnelObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.funnel-fill').forEach(bar => {
+        const w = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => { bar.style.width = w; }, 150);
+      });
+      funnelObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+const funnelEl = document.querySelector('.funnel-bars');
+if (funnelEl) funnelObs.observe(funnelEl);
+</script>
+</body>
+</html>
