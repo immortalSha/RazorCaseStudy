@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Razorpay Checkout Redesign — UX Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0A0A0F;
+    --ink-60: rgba(10,10,15,0.6);
+    --ink-20: rgba(10,10,15,0.12);
+    --paper: #F5F3EE;
+    --paper-dark: #EAE7DF;
+    --accent: #0747A6;
+    --accent-light: #EBF0FA;
+    --green: #006644;
+    --green-bg: #E3FCEF;
+    --red: #BF2600;
+    --red-bg: #FFEBE6;
+    --amber: #974F0C;
+    --amber-bg: #FFF3CC;
+    --stroke: rgba(10,10,15,0.1);
+    --razorpay: #072654;
+    --razorpay-blue: #3395FF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    background: var(--razorpay);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 80px 80px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 70% at 85% 20%, rgba(51,149,255,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 10% 80%, rgba(51,149,255,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--razorpay-blue);
+    margin-bottom: 24px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 28px; height: 1px;
+    background: var(--razorpay-blue);
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    max-width: 800px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .hero-title span {
+    color: var(--razorpay-blue);
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.55);
+    max-width: 480px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 40px;
+    position: relative;
+  }
+
+  .meta-item { }
+  .meta-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 4px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .meta-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+  }
+
+  .hero-stat-row {
+    position: absolute;
+    right: 80px; bottom: 60px;
+    display: flex; gap: 24px;
+  }
+
+  .hero-stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 20px 28px;
+    text-align: center;
+    backdrop-filter: blur(12px);
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: #fff;
+    display: block;
+  }
+  .stat-num.green { color: #4EE794; }
+  .stat-num.red { color: #FF6B6B; }
+  .stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 30px; left: 80px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+    animation: bobY 2s ease-in-out infinite;
+  }
+  .scroll-hint::after {
+    content: '↓';
+    font-size: 14px;
+  }
+  @keyframes bobY {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+  }
+
+  /* ─── SECTION WRAPPERS ─── */
+  section {
+    padding: 100px 80px;
+  }
+
+  .section-tag {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .section-tag::before {
+    content: '';
+    width: 20px; height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 4vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin-bottom: 20px;
+  }
+
+  .section-body {
+    font-size: 17px;
+    color: var(--ink-60);
+    line-height: 1.75;
+    max-width: 640px;
+  }
+
+  /* ─── PROBLEM SECTION ─── */
+  .problem-section {
+    background: var(--ink);
+    color: #fff;
+  }
+  .problem-section .section-tag { color: #FF6B6B; }
+  .problem-section .section-tag::before { background: #FF6B6B; }
+  .problem-section .section-title { color: #fff; }
+  .problem-section .section-body { color: rgba(255,255,255,0.5); }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px;
+    margin-top: 60px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .problem-card {
+    background: #111118;
+    padding: 36px;
+    position: relative;
+    transition: background 0.3s;
+  }
+  .problem-card:hover { background: #16161f; }
+
+  .problem-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 64px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.06);
+    line-height: 1;
+    margin-bottom: 16px;
+    letter-spacing: -0.04em;
+  }
+
+  .problem-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .problem-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .problem-desc {
+    font-size: 14px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.7;
+  }
+
+  .problem-metric {
+    margin-top: 20px;
+    padding: 12px 16px;
+    background: rgba(255,107,107,0.1);
+    border-left: 3px solid #FF6B6B;
+    border-radius: 4px;
+  }
+  .problem-metric span {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    color: #FF6B6B;
+    font-size: 18px;
+    display: block;
+  }
+  .problem-metric p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 2px;
+  }
+
+  /* ─── FUNNEL VIZ ─── */
+  .funnel-section {
+    background: var(--paper-dark);
+  }
+
+  .funnel-wrap {
+    margin-top: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 640px;
+  }
+
+  .funnel-step {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--stroke);
+    position: relative;
+  }
+
+  .funnel-bar-wrap {
+    flex: 1;
+  }
+
+  .funnel-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .funnel-bar-bg {
+    height: 10px;
+    background: var(--ink-20);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .funnel-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--accent);
+    transition: width 1s cubic-bezier(.16,1,.3,1);
+  }
+  .funnel-bar-fill.red { background: var(--red); }
+  .funnel-bar-fill.amber { background: #F59F00; }
+
+  .funnel-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    width: 60px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .funnel-drop {
+    font-size: 11px;
+    color: var(--red);
+    font-weight: 500;
+  }
+
+  /* ─── RESEARCH SECTION ─── */
+  .research-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 60px;
+  }
+
+  .insight-card {
+    background: #fff;
+    border: 1px solid var(--stroke);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .insight-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+
+  .quote-mark {
+    font-family: 'Syne', sans-serif;
+    font-size: 56px;
+    font-weight: 800;
+    color: var(--accent-light);
+    line-height: 1;
+    margin-bottom: 8px;
+    letter-spacing: -0.04em;
+  }
+
+  .quote-text {
+    font-size: 15px;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.65;
+    margin-bottom: 16px;
+  }
+
+  .quote-person {
+    font-size: 12px;
+    color: var(--ink-60);
+  }
+  .quote-person strong {
+    color: var(--ink);
+    font-style: normal;
+  }
+
+  /* ─── CHECKOUT FLOW DEMO ─── */
+  .flow-section {
+    background: var(--ink);
+    color: #fff;
+  }
+  .flow-section .section-tag { color: var(--razorpay-blue); }
+  .flow-section .section-tag::before { background: var(--razorpay-blue); }
+  .flow-section .section-title { color: #fff; }
+  .flow-section .section-body { color: rgba(255,255,255,0.5); }
+
+  .flow-tabs {
+    display: flex;
+    gap: 4px;
+    margin-top: 48px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 4px;
+    width: fit-content;
+  }
+
+  .flow-tab {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: rgba(255,255,255,0.45);
+    transition: all 0.2s;
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .flow-tab.active {
+    background: #fff;
+    color: var(--ink);
+  }
+  .flow-tab:hover:not(.active) { color: rgba(255,255,255,0.75); }
+
+  .flow-content {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 60px;
+    align-items: start;
+  }
+
+  /* ─── PHONE MOCKUP ─── */
+  .phone-wrap {
+    position: relative;
+  }
+
+  .phone {
+    width: 320px;
+    background: #fff;
+    border-radius: 40px;
+    border: 8px solid #1a1a2e;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 40px 80px rgba(0,0,0,0.6),
+      inset 0 0 0 1px rgba(255,255,255,0.04);
+    position: relative;
+  }
+
+  .phone-notch {
+    height: 28px;
+    background: #1a1a2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .phone-notch-pill {
+    width: 90px; height: 12px;
+    background: #0a0a14;
+    border-radius: 99px;
+  }
+
+  .phone-screen {
+    min-height: 580px;
+    background: #F7F8FA;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Checkout screens */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .checkout-header {
+    background: #fff;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #EAECF0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .checkout-brand-dot {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--razorpay);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #fff;
+    font-family: 'Syne', sans-serif;
+  }
+  .checkout-brand-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .checkout-secure {
+    margin-left: auto;
+    font-size: 10px;
+    color: #36B37E;
+    display: flex; align-items: center; gap: 4px;
+    font-weight: 500;
+  }
+
+  .checkout-amount-bar {
+    background: #072654;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .amount-label { font-size: 11px; color: rgba(255,255,255,0.5); }
+  .amount-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #fff; }
+  .amount-order { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 1px; }
+
+  .payment-body { padding: 16px 18px; }
+
+  .method-tabs {
+    display: flex;
+    background: #EAECF0;
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 16px;
+    gap: 2px;
+  }
+  .method-tab {
+    flex: 1; padding: 7px 4px;
+    border-radius: 6px; border: none;
+    font-size: 10px; font-weight: 600;
+    text-align: center; cursor: pointer;
+    color: #6B7280; background: none;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .method-tab.active {
+    background: #fff; color: var(--razorpay);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .upi-row {
+    background: #fff;
+    border-radius: 10px;
+    border: 1.5px solid #EAECF0;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .upi-row:hover, .upi-row.selected { border-color: var(--razorpay-blue); }
+  .upi-row.selected { background: #F0F6FF; }
+
+  .upi-logo {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .upi-name { font-size: 12px; font-weight: 600; color: var(--ink); }
+  .upi-sub { font-size: 10px; color: #6B7280; }
+  .upi-radio {
+    margin-left: auto;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid #CBD5E0;
+    position: relative;
+  }
+  .upi-row.selected .upi-radio {
+    border-color: var(--razorpay-blue);
+    background: var(--razorpay-blue);
+  }
+  .upi-row.selected .upi-radio::after {
+    content: '';
+    position: absolute; inset: 3px;
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  .upi-id-input {
+    background: #fff;
+    border: 1.5px solid #EAECF0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .upi-id-input input {
+    border: none; outline: none;
+    font-size: 12px; color: var(--ink);
+    flex: 1; background: transparent;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .upi-id-input input::placeholder { color: #9CA3AF; }
+  .upi-verify { font-size: 11px; font-weight: 600; color: var(--razorpay-blue); cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+  .pay-btn {
+    width: 100%;
+    background: var(--razorpay);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s, transform 0.15s;
+    letter-spacing: 0.02em;
+    margin-top: 4px;
+  }
+  .pay-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .trust-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 0 4px;
+  }
+  .trust-item {
+    font-size: 11px;
+    color: #9CA3AF;
+    display: flex; align-items: center; gap: 3px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .trust-dot { width: 3px; height: 3px; border-radius: 50%; background: #CBD5E0; }
+
+  /* ─── Loading Screen ─── */
+  .loading-screen {
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .spinner-wrap {
+    width: 64px; height: 64px;
+    margin: 30px auto 20px;
+    position: relative;
+  }
+  .spinner-ring {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 3px solid #EAECF0;
+    border-top-color: var(--razorpay-blue);
+    animation: spin 0.8s linear infinite;
+    position: absolute; inset: 0;
+  }
+  .spinner-inner {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #072654;
+    position: absolute;
+    top: 12px; left: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 700; color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .loading-sub { font-size: 12px; color: #6B7280; margin-bottom: 24px; }
+  .loading-steps {
+    text-align: left;
+    background: #F7F8FA;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .loading-step {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: #6B7280;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .step-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+  .step-done { background: #E3FCEF; color: var(--green); }
+  .step-active { background: #EBF0FA; color: var(--accent); }
+  .step-pending { background: #EAECF0; color: #9CA3AF; }
+  .loading-step.done { color: var(--ink); }
+  .loading-step.active { color: var(--accent); font-weight: 500; }
+
+  /* Success screen */
+  .success-screen {
+    padding: 32px 20px;
+    text-align: center;
+  }
+  .success-icon-wrap {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--green-bg);
+    margin: 16px auto 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    animation: popIn 0.4s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .success-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 800; color: var(--green);
+    margin-bottom: 4px;
+  }
+  .success-sub { font-size: 12px; color: #6B7280; margin-bottom: 20px; }
+
+  .txn-card {
+    background: #fff;
+    border: 1px solid #EAECF0;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: left;
+    margin-bottom: 16px;
+  }
+  .txn-row {
+    display: flex; justify-content: space-between;
+    font-size: 12px; padding: 5px 0;
+    border-bottom: 1px solid #F3F4F6;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .txn-row:last-child { border: none; }
+  .txn-key { color: #6B7280; }
+  .txn-val { font-weight: 600; color: var(--ink); }
+  .txn-val.green { color: var(--green); }
+
+  .success-actions {
+    display: flex; gap: 8px;
+  }
+  .btn-secondary {
+    flex: 1;
+    padding: 11px;
+    border-radius: 8px;
+    border: 1.5px solid #EAECF0;
+    background: #fff;
+    font-size: 12px; font-weight: 600; color: var(--ink);
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-primary-sm {
+    flex: 1;
+    padding: 11px;
+    border-radius: 8px;
+    border: none;
+    background: var(--razorpay);
+    font-size: 12px; font-weight: 600; color: #fff;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Failure screen */
+  .fail-screen {
+    padding: 32px 20px;
+    text-align: center;
+  }
+  .fail-icon-wrap {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--red-bg);
+    margin: 16px auto 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    animation: popIn 0.4s cubic-bezier(.16,1,.3,1);
+  }
+  .fail-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 800; color: var(--red);
+    margin-bottom: 4px;
+  }
+  .fail-sub { font-size: 12px; color: #6B7280; margin-bottom: 12px; }
+
+  .fail-reason {
+    background: #FFF3F3;
+    border: 1px solid #FECDCA;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: left;
+    margin-bottom: 14px;
+  }
+  .fail-reason-title { font-size: 12px; font-weight: 600; color: var(--red); margin-bottom: 4px; font-family: 'DM Sans', sans-serif; }
+  .fail-reason-body { font-size: 12px; color: #6B7280; line-height: 1.55; font-family: 'DM Sans', sans-serif; }
+
+  .retry-options { display: flex; flex-direction: column; gap: 8px; }
+  .retry-btn {
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    transition: background 0.15s;
+    border: 1.5px solid transparent;
+  }
+  .retry-btn.primary-retry {
+    background: var(--razorpay); color: #fff; border-color: var(--razorpay);
+    font-family: 'Syne', sans-serif; font-weight: 700; justify-content: center;
+  }
+  .retry-btn.alt {
+    background: #fff; color: var(--ink); border-color: #EAECF0;
+  }
+  .retry-btn.alt:hover { border-color: #CBD5E0; }
+
+  /* Network screen */
+  .network-screen {
+    padding: 32px 20px;
+    text-align: center;
+  }
+  .network-icon-wrap {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--amber-bg);
+    margin: 16px auto 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    animation: popIn 0.4s cubic-bezier(.16,1,.3,1);
+  }
+  .network-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 800; color: var(--amber);
+    margin-bottom: 4px;
+  }
+  .network-sub { font-size: 12px; color: #6B7280; margin-bottom: 16px; }
+
+  .safety-banner {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: left;
+    margin-bottom: 14px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .safety-banner-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .safety-banner-text { font-size: 12px; color: var(--amber); line-height: 1.55; font-weight: 500; font-family: 'DM Sans', sans-serif; }
+
+  .network-actions { display: flex; flex-direction: column; gap: 8px; }
+  .check-btn {
+    padding: 13px;
+    border-radius: 8px;
+    border: none;
+    background: #F59F00;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    width: 100%;
+  }
+  .support-btn {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1.5px solid #EAECF0;
+    background: #fff;
+    font-size: 12px; color: var(--ink); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+    width: 100%;
+  }
+
+  /* ─── Screen annotations ─── */
+  .annotations {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .annotation {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .ann-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--razorpay-blue);
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .ann-body {}
+  .ann-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .ann-text { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.65; }
+
+  .ann-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .chip-green { background: rgba(78,231,148,0.12); color: #4EE794; }
+  .chip-red { background: rgba(255,107,107,0.12); color: #FF6B6B; }
+  .chip-amber { background: rgba(245,159,0,0.12); color: #F59F00; }
+  .chip-blue { background: rgba(51,149,255,0.12); color: var(--razorpay-blue); }
+
+  /* ─── DESIGN DECISIONS ─── */
+  .decisions-section { background: var(--paper); }
+
+  .decisions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-top: 60px;
+  }
+
+  .decision-card {
+    background: #fff;
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .decision-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+  }
+  .decision-card::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--razorpay-blue));
+    transform: scaleX(0);
+    transition: transform 0.3s;
+    transform-origin: left;
+  }
+  .decision-card:hover::after { transform: scaleX(1); }
+
+  .decision-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .decision-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .decision-body {
+    font-size: 14px;
+    color: var(--ink-60);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .before-after {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-top: 12px;
+  }
+  .ba-item { padding: 10px 12px; border-radius: 8px; font-size: 12px; }
+  .ba-before { background: var(--red-bg); color: var(--red); }
+  .ba-after { background: var(--green-bg); color: var(--green); }
+  .ba-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; opacity: 0.6; font-family: 'DM Sans', sans-serif; }
+  .ba-text { font-weight: 500; }
+
+  /* ─── IMPACT SECTION ─── */
+  .impact-section {
+    background: #072654;
+    color: #fff;
+  }
+  .impact-section .section-tag { color: #4EE794; }
+  .impact-section .section-tag::before { background: #4EE794; }
+  .impact-section .section-title { color: #fff; }
+
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-top: 60px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .impact-card {
+    background: rgba(255,255,255,0.05);
+    padding: 36px 28px;
+    text-align: center;
+    position: relative;
+  }
+
+  .impact-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.5));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .impact-num.green { background: linear-gradient(135deg, #4EE794, #36B37E); -webkit-background-clip: text; background-clip: text; }
+  .impact-num.blue { background: linear-gradient(135deg, var(--razorpay-blue), #66B2FF); -webkit-background-clip: text; background-clip: text; }
+
+  .impact-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.4;
+  }
+
+  .impact-dir {
+    font-size: 12px;
+    margin-top: 8px;
+    font-weight: 600;
+  }
+  .impact-dir.up { color: #4EE794; }
+  .impact-dir.down { color: #FF6B6B; }
+
+  /* ─── SYSTEM DESIGN ─── */
+  .system-section { background: var(--paper-dark); }
+
+  .component-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 60px;
+  }
+
+  .component-card {
+    background: #fff;
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .component-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.07);
+  }
+
+  .comp-preview {
+    height: 72px;
+    border-radius: 8px;
+    background: var(--accent-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    margin-bottom: 14px;
+  }
+
+  .comp-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .comp-desc { font-size: 12px; color: var(--ink-60); line-height: 1.6; font-family: 'DM Sans', sans-serif; }
+
+  /* ─── NEXT STEPS ─── */
+  .next-section { background: var(--ink); color: #fff; }
+  .next-section .section-tag { color: rgba(255,255,255,0.3); }
+  .next-section .section-tag::before { background: rgba(255,255,255,0.2); }
+  .next-section .section-title { color: #fff; }
+
+  .next-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 60px;
+  }
+  .next-card {
+    background: #111118;
+    border-radius: 16px;
+    padding: 28px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .next-phase {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); margin-bottom: 12px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .next-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 10px;
+  }
+  .next-items {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .next-items li {
+    font-size: 13px; color: rgba(255,255,255,0.45);
+    display: flex; align-items: flex-start; gap: 8px;
+    line-height: 1.5;
+  }
+  .next-items li::before {
+    content: '→';
+    color: var(--razorpay-blue);
+    flex-shrink: 0;
+    margin-top: 0px;
+  }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    background: #050A18;
+    padding: 60px 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+  }
+  .footer-brand span { color: var(--razorpay-blue); }
+  .footer-meta { font-size: 12px; color: rgba(255,255,255,0.25); }
+
+  /* ─── STICKY NAV ─── */
+  .sticky-nav {
+    position: fixed;
+    top: 24px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(7,38,84,0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 99px;
+    padding: 8px 8px 8px 20px;
+    display: flex; align-items: center; gap: 4px;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .nav-item {
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-item:hover { color: rgba(255,255,255,0.9); }
+  .nav-item.cta {
+    background: var(--razorpay-blue);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    section { padding: 64px 32px; }
+    .hero { padding: 60px 32px 80px; }
+    .hero-stat-row { position: static; margin-top: 40px; flex-wrap: wrap; }
+    .problem-grid, .research-grid, .impact-grid, .decisions-grid,
+    .component-grid, .next-grid { grid-template-columns: 1fr 1fr; }
+    .flow-content { grid-template-columns: 1fr; }
+    .phone { width: 100%; max-width: 340px; margin: 0 auto; }
+    .sticky-nav { display: none; }
+    .footer { flex-direction: column; gap: 16px; text-align: center; padding: 40px 32px; }
+  }
+  @media (max-width: 600px) {
+    .problem-grid, .research-grid, .impact-grid, .decisions-grid,
+    .component-grid, .next-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- STICKY NAV -->
+<nav class="sticky-nav">
+  <a href="#problem" class="nav-item">Problem</a>
+  <a href="#research" class="nav-item">Research</a>
+  <a href="#flows" class="nav-item">Flows</a>
+  <a href="#decisions" class="nav-item">Decisions</a>
+  <a href="#impact" class="nav-item">Impact</a>
+  <a href="#system" class="nav-item cta">System</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-eyebrow">UX Case Study · Fintech · 2024</div>
+  <h1 class="hero-title">Razorpay<br><span>Checkout</span><br>Redesign</h1>
+  <p class="hero-sub">Rethinking India's most used payment interface — from drop-off prevention to failure recovery, at scale.</p>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <div class="meta-label">Role</div>
+      <div class="meta-value">Lead UX Designer</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Platform</div>
+      <div class="meta-value">Android · iOS · Web</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Duration</div>
+      <div class="meta-value">12 Weeks</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Tools</div>
+      <div class="meta-value">Figma · Maze · Hotjar</div>
+    </div>
+  </div>
+  <div class="hero-stat-row">
+    <div class="hero-stat">
+      <span class="stat-num red">30%</span>
+      <span class="stat-label">Drop-off at checkout</span>
+    </div>
+    <div class="hero-stat">
+      <span class="stat-num">₹1.2Cr</span>
+      <span class="stat-label">Daily revenue at risk</span>
+    </div>
+    <div class="hero-stat">
+      <span class="stat-num green">+18%</span>
+      <span class="stat-label">Completion rate post-redesign</span>
+    </div>
+  </div>
+  <div class="scroll-hint">Scroll to explore</div>
+</section>
+
+<!-- PROBLEM SECTION -->
+<section class="problem-section" id="problem">
+  <div class="section-tag">01 — Problem Statement</div>
+  <h2 class="section-title">Where users<br>were failing</h2>
+  <p class="section-body">Analytics data from 3 months of session recordings, heatmaps, and exit surveys revealed three critical breakdown points in the current checkout flow.</p>
+
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="problem-number">01</div>
+      <span class="problem-icon">😕</span>
+      <div class="problem-title">Payment Method Confusion</div>
+      <div class="problem-desc">Users couldn't distinguish between UPI apps, UPI ID, and QR — leading to wrong method selection and abandoned sessions.</div>
+      <div class="problem-metric">
+        <span>42%</span>
+        <p>users tried wrong method first</p>
+      </div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-number">02</span>
+      <span class="problem-icon">❌</span>
+      <div class="problem-title">Silent Failure States</div>
+      <div class="problem-desc">When payments failed, users received generic error messages with no actionable next step — leaving them stranded mid-transaction.</div>
+      <div class="problem-metric">
+        <span>67%</span>
+        <p>abandoned after first failure</p>
+      </div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-number">03</span>
+      <span class="problem-icon">🔄</span>
+      <div class="problem-title">No Progress Transparency</div>
+      <div class="problem-desc">During bank processing, users saw no status updates — causing them to close the app fearing double charges.</div>
+      <div class="problem-metric">
+        <span>28%</span>
+        <p>closed app during processing</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNNEL SECTION -->
+<section class="funnel-section" id="funnel">
+  <div class="section-tag">02 — Data Analysis</div>
+  <h2 class="section-title">The drop-off<br>funnel</h2>
+  <p class="section-body">Session analytics across 45,000 transactions in November 2023 revealed a staggered funnel with the sharpest drop at payment confirmation.</p>
+
+  <div class="funnel-wrap">
+    <div class="funnel-step">
+      <div class="funnel-bar-wrap">
+        <div class="funnel-label">
+          <span>Product page → Checkout initiated</span>
+          <span class="funnel-drop"></span>
+        </div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill" style="width:100%"></div>
+        </div>
+      </div>
+      <div class="funnel-pct">100%</div>
+    </div>
+    <div class="funnel-step">
+      <div class="funnel-bar-wrap">
+        <div class="funnel-label">
+          <span>Address / details confirmed</span>
+          <span class="funnel-drop">−8%</span>
+        </div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill" style="width:92%"></div>
+        </div>
+      </div>
+      <div class="funnel-pct">92%</div>
+    </div>
+    <div class="funnel-step">
+      <div class="funnel-bar-wrap">
+        <div class="funnel-label">
+          <span>Payment method selected</span>
+          <span class="funnel-drop amber">−18%</span>
+        </div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill amber" style="width:74%"></div>
+        </div>
+      </div>
+      <div class="funnel-pct" style="color:#F59F00">74%</div>
+    </div>
+    <div class="funnel-step">
+      <div class="funnel-bar-wrap">
+        <div class="funnel-label">
+          <span>Pay button clicked</span>
+          <span class="funnel-drop" style="color:#F59F00">−12%</span>
+        </div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill amber" style="width:62%"></div>
+        </div>
+      </div>
+      <div class="funnel-pct" style="color:#F59F00">62%</div>
+    </div>
+    <div class="funnel-step">
+      <div class="funnel-bar-wrap">
+        <div class="funnel-label">
+          <span>Payment processed → Success</span>
+          <span class="funnel-drop" style="color:var(--red)">−32%</span>
+        </div>
+        <div class="funnel-bar-bg">
+          <div class="funnel-bar-fill red" style="width:30%"></div>
+        </div>
+      </div>
+      <div class="funnel-pct" style="color:var(--red)">30%</div>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH SECTION -->
+<section style="background:#fff" id="research">
+  <div class="section-tag">03 — User Research</div>
+  <h2 class="section-title">What users<br>actually said</h2>
+  <p class="section-body">18 moderated usability sessions + 340 exit survey responses. Participants ranged from first-time UPI users to power users with 5+ apps.</p>
+
+  <div class="research-grid">
+    <div class="insight-card">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">I clicked Pay and just saw a loading spinner for 40 seconds. I had no idea if my money was gone or not. I closed the app.</p>
+      <div class="quote-person"><strong>Priya, 26</strong> — Bangalore · First-time online shopper</div>
+    </div>
+    <div class="insight-card" style="border-top-color: var(--red);">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">The error just said "Payment failed". No reason. No next step. I tried again and got charged twice — had to call support.</p>
+      <div class="quote-person"><strong>Rahul, 34</strong> — Mumbai · Frequent e-commerce user</div>
+    </div>
+    <div class="insight-card" style="border-top-color: #F59F00;">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">Why are there so many UPI options? I don't know if I should use PhonePe or GPay or just type in a UPI ID. It's overwhelming.</p>
+      <div class="quote-person"><strong>Anand, 22</strong> — Chennai · Student, occasional buyer</div>
+    </div>
+  </div>
+</section>
+
+<!-- FLOW DEMO SECTION -->
+<section class="flow-section" id="flows">
+  <div class="section-tag">04 — Interaction Design</div>
+  <h2 class="section-title">Every critical<br>flow, designed</h2>
+  <p class="section-body">Four screens covering the complete payment journey — from normal checkout to failure recovery, network issues, and double-charge prevention.</p>
+
+  <div class="flow-tabs">
+    <button class="flow-tab active" onclick="switchFlow(this, 'checkout')">💳 Normal Flow</button>
+    <button class="flow-tab" onclick="switchFlow(this, 'loading')">⏳ Processing</button>
+    <button class="flow-tab" onclick="switchFlow(this, 'success')">✅ Success</button>
+    <button class="flow-tab" onclick="switchFlow(this, 'failure')">❌ Failure</button>
+    <button class="flow-tab" onclick="switchFlow(this, 'network')">📶 Network Issue</button>
+  </div>
+
+  <div class="flow-content">
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+        <div class="phone-screen">
+
+          <!-- CHECKOUT SCREEN -->
+          <div class="screen active" id="screen-checkout">
+            <div class="checkout-header">
+              <div class="checkout-brand-dot">Z</div>
+              <div>
+                <div class="checkout-brand-name">Zepto</div>
+              </div>
+              <div class="checkout-secure">🔒 Secured by Razorpay</div>
+            </div>
+            <div class="checkout-amount-bar">
+              <div>
+                <div class="amount-label">Total Amount</div>
+                <div class="amount-value">₹1,249.00</div>
+                <div class="amount-order">Order #ZPT-892341</div>
+              </div>
+              <div style="font-size:28px">🛒</div>
+            </div>
+            <div class="payment-body">
+              <div class="method-tabs">
+                <button class="method-tab active">UPI</button>
+                <button class="method-tab">Card</button>
+                <button class="method-tab">Wallet</button>
+                <button class="method-tab">NetBnk</button>
+              </div>
+              <div style="font-size:11px;font-weight:600;color:#6B7280;margin-bottom:8px;">SUGGESTED FOR YOU</div>
+              <div class="upi-row selected">
+                <div class="upi-logo" style="background:#6440C4">📱</div>
+                <div>
+                  <div class="upi-name">PhonePe</div>
+                  <div class="upi-sub">Last used · 3 mins ago</div>
+                </div>
+                <div class="upi-radio"></div>
+              </div>
+              <div class="upi-row">
+                <div class="upi-logo" style="background:#1A73E8">G</div>
+                <div>
+                  <div class="upi-name">Google Pay</div>
+                  <div class="upi-sub">Linked account</div>
+                </div>
+                <div class="upi-radio"></div>
+              </div>
+              <div style="font-size:11px;font-weight:600;color:#6B7280;margin:10px 0 8px;">OR PAY WITH UPI ID</div>
+              <div class="upi-id-input">
+                <span style="font-size:14px">🔗</span>
+                <input type="text" placeholder="name@bank" value="sachi@okicici">
+                <span class="upi-verify">Verified ✓</span>
+              </div>
+              <button class="pay-btn">🔒 Pay ₹1,249</button>
+              <div class="trust-bar">
+                <div class="trust-item">🏦 100% Bank-Grade Encryption</div>
+                <div class="trust-dot"></div>
+                <div class="trust-item">PCI-DSS Certified</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LOADING SCREEN -->
+          <div class="screen" id="screen-loading">
+            <div class="checkout-header">
+              <div class="checkout-brand-dot">Z</div>
+              <div class="checkout-brand-name">Zepto</div>
+              <div class="checkout-secure">🔒 Secured</div>
+            </div>
+            <div class="checkout-amount-bar">
+              <div>
+                <div class="amount-label">Processing Payment</div>
+                <div class="amount-value">₹1,249.00</div>
+              </div>
+            </div>
+            <div class="loading-screen">
+              <div class="spinner-wrap">
+                <div class="spinner-ring"></div>
+                <div class="spinner-inner">📱</div>
+              </div>
+              <div class="loading-title">Waiting for approval</div>
+              <div class="loading-sub">Check your PhonePe app to authorize</div>
+              <div class="loading-steps">
+                <div class="loading-step done">
+                  <div class="step-icon step-done">✓</div>
+                  Payment request sent
+                </div>
+                <div class="loading-step active">
+                  <div class="step-icon step-active">⏳</div>
+                  Waiting for your approval
+                </div>
+                <div class="loading-step">
+                  <div class="step-icon step-pending">○</div>
+                  Bank processing
+                </div>
+                <div class="loading-step">
+                  <div class="step-icon step-pending">○</div>
+                  Confirmation
+                </div>
+              </div>
+              <div style="margin-top:16px;font-size:11px;color:#9CA3AF;background:#FFFBEB;border-radius:8px;padding:10px;border:1px solid #FDE68A;text-align:left;">
+                ⚠️ <strong style="color:#92400E">Don't close this screen.</strong> Your payment is being processed. Closing may lead to confusion about payment status.
+              </div>
+            </div>
+          </div>
+
+          <!-- SUCCESS SCREEN -->
+          <div class="screen" id="screen-success">
+            <div class="checkout-header">
+              <div class="checkout-brand-dot" style="background:#006644">✓</div>
+              <div class="checkout-brand-name">Payment Successful</div>
+            </div>
+            <div class="success-screen">
+              <div class="success-icon-wrap">✅</div>
+              <div class="success-title">Payment Successful!</div>
+              <div class="success-sub">Your order has been confirmed</div>
+              <div class="txn-card">
+                <div class="txn-row"><span class="txn-key">Amount Paid</span><span class="txn-val green">₹1,249.00</span></div>
+                <div class="txn-row"><span class="txn-key">Payment Method</span><span class="txn-val">PhonePe UPI</span></div>
+                <div class="txn-row"><span class="txn-key">UPI Ref No.</span><span class="txn-val">4209837456</span></div>
+                <div class="txn-row"><span class="txn-key">Order ID</span><span class="txn-val">ZPT-892341</span></div>
+                <div class="txn-row"><span class="txn-key">Time</span><span class="txn-val">Today, 6:42 PM</span></div>
+              </div>
+              <div class="success-actions">
+                <button class="btn-secondary">🧾 Receipt</button>
+                <button class="btn-primary-sm">📦 Track Order</button>
+              </div>
+              <div style="margin-top:14px;font-size:11px;color:#6B7280;text-align:center;">
+                A confirmation has been sent to your registered email
+              </div>
+            </div>
+          </div>
+
+          <!-- FAILURE SCREEN -->
+          <div class="screen" id="screen-failure">
+            <div class="checkout-header">
+              <div class="checkout-brand-dot" style="background:#BF2600">!</div>
+              <div class="checkout-brand-name">Payment Failed</div>
+            </div>
+            <div class="fail-screen">
+              <div class="fail-icon-wrap">❌</div>
+              <div class="fail-title">Payment Failed</div>
+              <div class="fail-sub">Don't worry — no money was deducted</div>
+              <div class="fail-reason">
+                <div class="fail-reason-title">Why this happened</div>
+                <div class="fail-reason-body">Your bank declined the transaction due to an incorrect UPI PIN. Your account has not been debited.</div>
+              </div>
+              <div class="retry-options">
+                <button class="retry-btn primary-retry">🔄 Retry with PhonePe</button>
+                <button class="retry-btn alt">💳 Try a different card</button>
+                <button class="retry-btn alt">🏦 Switch to Net Banking</button>
+                <button class="retry-btn alt" style="color:#6B7280;font-size:11px;border-color:#F3F4F6;">Need help? Contact Support →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- NETWORK ISSUE SCREEN -->
+          <div class="screen" id="screen-network">
+            <div class="checkout-header">
+              <div class="checkout-brand-dot" style="background:#974F0C">📶</div>
+              <div class="checkout-brand-name">Network Issue</div>
+            </div>
+            <div class="network-screen">
+              <div class="network-icon-wrap">⚠️</div>
+              <div class="network-title">Connection Lost</div>
+              <div class="network-sub">We couldn't confirm your payment status</div>
+              <div class="safety-banner">
+                <span class="safety-banner-icon">🛡️</span>
+                <div class="safety-banner-text">Your money is safe. If any amount was deducted, it will be refunded automatically within 24 hours. You will NOT be charged twice.</div>
+              </div>
+              <div class="network-actions">
+                <button class="check-btn">🔍 Check Payment Status</button>
+                <button class="support-btn">💬 Contact Support</button>
+                <button class="support-btn" style="color:#6B7280;font-size:11px;border:none;">← Go back to homepage</button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end phone-screen -->
+      </div><!-- end phone -->
+    </div><!-- end phone-wrap -->
+
+    <!-- ANNOTATIONS -->
+    <div class="annotations" id="annotations-checkout">
+      <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">Design decisions</div>
+      <div class="annotation">
+        <div class="ann-num">1</div>
+        <div class="ann-body">
+          <div class="ann-title">Smart method surfacing</div>
+          <div class="ann-text">The most recently used UPI app surfaces first — reducing cognitive load. Research showed 78% of users re-use the same payment method.</div>
+          <div class="ann-chip chip-green">↑ 22% faster method selection</div>
+        </div>
+      </div>
+      <div class="annotation">
+        <div class="ann-num">2</div>
+        <div class="ann-body">
+          <div class="ann-title">Persistent trust indicators</div>
+          <div class="ann-text">Bank-grade encryption label + PCI-DSS badge visible below CTA. Small but measurable: trust badges reduced hesitation by 15% in A/B test.</div>
+          <div class="ann-chip chip-blue">+15% CTA conversion</div>
+        </div>
+      </div>
+      <div class="annotation">
+        <div class="ann-num">3</div>
+        <div class="ann-body">
+          <div class="ann-title">UPI ID inline verification</div>
+          <div class="ann-text">Real-time UPI ID validation with a "Verified ✓" state prevents failed payments caused by typos — a top source of preventable failures.</div>
+          <div class="ann-chip chip-green">−31% UPI ID errors</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotations" id="annotations-loading" style="display:none">
+      <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">Design decisions</div>
+      <div class="annotation">
+        <div class="ann-num">1</div>
+        <div class="ann-body">
+          <div class="ann-title">Progress step indicators</div>
+          <div class="ann-text">4-step progress tracker with "Waiting for approval" as the current step — gives users clear visibility and eliminates the "is it hung?" anxiety.</div>
+          <div class="ann-chip chip-blue">−28% premature app closes</div>
+        </div>
+      </div>
+      <div class="annotation">
+        <div class="ann-num">2</div>
+        <div class="ann-body">
+          <div class="ann-title">Don't-close warning</div>
+          <div class="ann-text">Contextual warning banner explaining why the screen must stay open — reduces the #1 cause of payment status confusion (user closes app mid-auth).</div>
+          <div class="ann-chip chip-amber">↓ 45% support tickets on status</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotations" id="annotations-success" style="display:none">
+      <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">Design decisions</div>
+      <div class="annotation">
+        <div class="ann-num">1</div>
+        <div class="ann-body">
+          <div class="ann-title">Complete transaction card</div>
+          <div class="ann-text">All critical info — amount, method, UPI ref, order ID, time — in one readable card. Users can screenshot this as receipt proof without needing email.</div>
+          <div class="ann-chip chip-green">+40% user satisfaction score</div>
+        </div>
+      </div>
+      <div class="annotation">
+        <div class="ann-num">2</div>
+        <div class="ann-body">
+          <div class="ann-title">Next-action nudge</div>
+          <div class="ann-text">"Track Order" as the primary CTA keeps users engaged post-payment — reduces "where is my order?" support tickets and improves retention.</div>
+          <div class="ann-chip chip-blue">Business value: ↓ support volume</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotations" id="annotations-failure" style="display:none">
+      <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">Design decisions</div>
+      <div class="annotation">
+        <div class="ann-num">1</div>
+        <div class="ann-body">
+          <div class="ann-title">Immediate debit reassurance</div>
+          <div class="ann-text">"Don't worry — no money was deducted" is the first thing users read. This single line reduced rage-quits by 35% — the fear of losing money is the #1 cause of abandoned retries.</div>
+          <div class="ann-chip chip-green">−35% abandonments post-failure</div>
+        </div>
+      </div>
+      <div class="annotation">
+        <div class="ann-num">2</div>
+        <div class="ann-body">
+          <div class="ann-title">Contextual retry options</div>
+          <div class="ann-text">Instead of one generic "Try Again", we offer method-specific retry paths (same method, card, net banking) — meeting users at their level of trust.</div>
+          <div class="ann-chip chip-blue">+42% retry success rate</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotations" id="annotations-network" style="display:none">
+      <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:8px;">Design decisions</div>
+      <div class="annotation">
+        <div class="ann-num">1</div>
+        <div class="ann-body">
+          <div class="ann-title">Double-charge prevention banner</div>
+          <div class="ann-text">Proactively addresses the user's #1 fear with a dedicated safety banner: "You will NOT be charged twice." This is the hardest UX problem in payments — we solved it with copy, not just code.</div>
+          <div class="ann-chip chip-green">−60% double-payment support calls</div>
+        </div>
+      </div>
+      <div class="annotation">
+        <div class="ann-num">2</div>
+        <div class="ann-body">
+          <div class="ann-title">Status check CTA</div>
+          <div class="ann-text">"Check Payment Status" as primary action gives users agency — they can verify in real-time instead of waiting anxiously for an email.</div>
+          <div class="ann-chip chip-amber">+28% user confidence score</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end flow-content -->
+</section>
+
+<!-- DESIGN DECISIONS -->
+<section class="decisions-section" id="decisions">
+  <div class="section-tag">05 — Design Thinking</div>
+  <h2 class="section-title">Key design<br>decisions</h2>
+  <p class="section-body">Every change was validated through Maze usability tests (n=84) and A/B tested against the existing checkout. Here's what moved the needle.</p>
+
+  <div class="decisions-grid">
+    <div class="decision-card">
+      <span class="decision-icon">🎯</span>
+      <div class="decision-title">Personalized Method Ordering</div>
+      <div class="decision-body">We moved from alphabetical listing to recency-based ordering. The last-used payment method appears first with a "Last used" timestamp — reducing decision fatigue at the most critical moment.</div>
+      <div class="before-after">
+        <div class="ba-item ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-text">Static alphabetical list. All methods look equal.</div>
+        </div>
+        <div class="ba-item ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-text">Smart ordering by recency + usage frequency.</div>
+        </div>
+      </div>
+    </div>
+    <div class="decision-card">
+      <span class="decision-icon">🔍</span>
+      <div class="decision-title">Failure Reason Transparency</div>
+      <div class="decision-body">Generic "Payment failed" messages were replaced with specific, plain-language explanations. "Your bank declined due to incorrect PIN" tells users exactly what to fix — removing guesswork entirely.</div>
+      <div class="before-after">
+        <div class="ba-item ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-text">"Payment failed. Please try again."</div>
+        </div>
+        <div class="ba-item ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-text">Specific reason + targeted retry options.</div>
+        </div>
+      </div>
+    </div>
+    <div class="decision-card">
+      <span class="decision-icon">🛡️</span>
+      <div class="decision-title">Proactive Double-Charge Protection</div>
+      <div class="decision-body">On network loss, instead of waiting for users to worry, we immediately display the refund guarantee banner. Addressing the fear proactively increased retry rates by 38%.</div>
+      <div class="before-after">
+        <div class="ba-item ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-text">No message. User left in the dark.</div>
+        </div>
+        <div class="ba-item ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-text">"You will NOT be charged twice" — visible immediately.</div>
+        </div>
+      </div>
+    </div>
+    <div class="decision-card">
+      <span class="decision-icon">📊</span>
+      <div class="decision-title">Processing Step Indicators</div>
+      <div class="decision-body">Users needed to understand that slow doesn't mean broken. A 4-step progress tracker (sent → authorizing → processing → confirmed) reduced premature app closures that caused payment ambiguity.</div>
+      <div class="before-after">
+        <div class="ba-item ba-before">
+          <div class="ba-label">Before</div>
+          <div class="ba-text">Indeterminate spinner. Zero visibility.</div>
+        </div>
+        <div class="ba-item ba-after">
+          <div class="ba-label">After</div>
+          <div class="ba-text">4-step progress with current state highlighted.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT SECTION -->
+<section class="impact-section" id="impact">
+  <div class="section-tag">06 — Business Impact</div>
+  <h2 class="section-title">Numbers that<br>matter</h2>
+  <p class="section-body">Measured over 8 weeks post-launch across 120,000 transactions on 3 partner merchant apps (Zepto, BookMyShow, Nykaa).</p>
+
+  <div class="impact-grid">
+    <div class="impact-card">
+      <div class="impact-num green">+18%</div>
+      <div class="impact-label">Checkout Completion Rate</div>
+      <div class="impact-dir up">↑ from 62% → 73%</div>
+    </div>
+    <div class="impact-card">
+      <div class="impact-num blue">−25%</div>
+      <div class="impact-label">Payment Failure Confusion</div>
+      <div class="impact-dir up">↑ Users retried after failure</div>
+    </div>
+    <div class="impact-card">
+      <div class="impact-num">+42%</div>
+      <div class="impact-label">Retry Success Rate</div>
+      <div class="impact-dir up">↑ 2nd attempt conversions</div>
+    </div>
+    <div class="impact-card">
+      <div class="impact-num green">−60%</div>
+      <div class="impact-label">Double-Charge Support Tickets</div>
+      <div class="impact-dir down">↓ Network-related complaints</div>
+    </div>
+  </div>
+</section>
+
+<!-- SYSTEM DESIGN -->
+<section class="system-section" id="system">
+  <div class="section-tag">07 — Design System</div>
+  <h2 class="section-title">Reusable component<br>architecture</h2>
+  <p class="section-body">Every element was built as a Figma component with documented variants, states, and usage guidelines — enabling rapid deployment across all Razorpay merchant partners.</p>
+
+  <div class="component-grid">
+    <div class="component-card">
+      <div class="comp-preview">💳</div>
+      <div class="comp-name">PaymentMethodRow</div>
+      <div class="comp-desc">4 states: default, hover, selected, disabled. Auto-surfaces recency data.</div>
+    </div>
+    <div class="component-card">
+      <div class="comp-preview">🔄</div>
+      <div class="comp-name">ProcessingState</div>
+      <div class="comp-desc">Animated progress tracker. Configurable steps 2–6.</div>
+    </div>
+    <div class="component-card">
+      <div class="comp-preview">✅</div>
+      <div class="comp-name">SuccessCard</div>
+      <div class="comp-desc">Transaction details card. Dynamic fields from API response.</div>
+    </div>
+    <div class="component-card">
+      <div class="comp-preview">❌</div>
+      <div class="comp-name">FailureState</div>
+      <div class="comp-desc">Error code to plain-language reason mapper. 22 error types covered.</div>
+    </div>
+    <div class="component-card">
+      <div class="comp-preview">⚠️</div>
+      <div class="comp-name">SafetyBanner</div>
+      <div class="comp-desc">Contextual warning/reassurance. 3 variants: info, warning, critical.</div>
+    </div>
+    <div class="component-card">
+      <div class="comp-preview">🔐</div>
+      <div class="comp-name">TrustIndicators</div>
+      <div class="comp-desc">Modular trust badges. Configurable per merchant compliance requirements.</div>
+    </div>
+    <div class="component-card">
+      <div class="comp-preview">🔢</div>
+      <div class="comp-name">UPIInput</div>
+      <div class="comp-desc">With inline async validation. 3 states: idle, verifying, verified/error.</div>
+    </div>
+    <div class="component-card">
+      <div class="comp-preview">📲</div>
+      <div class="comp-name">AmountBar</div>
+      <div class="comp-desc">Sticky header with merchant branding and order context.</div>
+    </div>
+  </div>
+</section>
+
+<!-- NEXT STEPS -->
+<section class="next-section">
+  <div class="section-tag">08 — What's Next</div>
+  <h2 class="section-title">Roadmap</h2>
+  <div class="next-grid">
+    <div class="next-card">
+      <div class="next-phase">Phase 2 · Q2 2024</div>
+      <div class="next-title">Smarter Failure Recovery</div>
+      <ul class="next-items">
+        <li>Bank-specific failure messaging (e.g. "SBI is under maintenance")</li>
+        <li>Retry scheduling: "Try again in 10 minutes for best results"</li>
+        <li>Cross-session payment recovery (link in email/SMS)</li>
+      </ul>
+    </div>
+    <div class="next-card">
+      <div class="next-phase">Phase 3 · Q3 2024</div>
+      <div class="next-title">Accessibility & Reach</div>
+      <ul class="next-items">
+        <li>Voice-enabled UPI flow for low-literacy users</li>
+        <li>WCAG 2.1 AA compliance audit</li>
+        <li>Lite mode for 2G/weak network conditions</li>
+      </ul>
+    </div>
+    <div class="next-card">
+      <div class="next-phase">Phase 4 · Q4 2024</div>
+      <div class="next-title">Personalization Engine</div>
+      <ul class="next-items">
+        <li>ML-powered payment method recommendation</li>
+        <li>Adaptive checkout based on device + network</li>
+        <li>Merchant-specific trust signal customization</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div>
+    <div class="footer-brand">Razorpay <span>Checkout</span> Redesign</div>
+    <div class="footer-meta" style="margin-top:6px;">UX Case Study · Sachi · 2024</div>
+  </div>
+  <div class="footer-meta" style="text-align:right;">
+    Built for Figma portfolio<br>
+    All data is illustrative
+  </div>
+</footer>
+
+<script>
+  function switchFlow(btn, flow) {
+    document.querySelectorAll('.flow-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + flow).classList.add('active');
+
+    document.querySelectorAll('[id^="annotations-"]').forEach(a => a.style.display = 'none');
+    const ann = document.getElementById('annotations-' + flow);
+    if (ann) ann.style.display = 'flex';
+  }
+
+  // Method tab interaction in phone
+  document.querySelectorAll('.method-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // UPI row selection
+  document.querySelectorAll('.upi-row').forEach(row => {
+    row.addEventListener('click', function() {
+      document.querySelectorAll('.upi-row').forEach(r => r.classList.remove('selected'));
+      this.classList.add('selected');
+    });
+  });
+
+  // Animate funnel bars on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.funnel-bar-fill').forEach(bar => {
+          const w = bar.style.width;
+          bar.style.width = '0%';
+          setTimeout(() => { bar.style.width = w; }, 100);
+        });
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  const funnelSection = document.querySelector('.funnel-wrap');
+  if (funnelSection) observer.observe(funnelSection);
+</script>
+
+</body>
+</html>
